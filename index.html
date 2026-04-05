@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Live Fire Training Tracker</title>
+<style>
+:root { --transition-speed: 0.2s; }
+
+[data-theme="dark"] {
+  --bg-primary: #1a1a2e; --bg-secondary: #16213e; --bg-card: #0f3460; --bg-input: #1a1a3e;
+  --text-primary: #e8e8e8; --text-secondary: #a8a8b8; --text-muted: #6e6e7e;
+  --accent: #e94560; --accent-hover: #ff6b81; --accent-green: #2ecc71; --accent-green-hover: #27ae60;
+  --accent-yellow: #f39c12; --accent-blue: #3498db; --border-color: #2a2a4a;
+  --shadow: 0 2px 8px rgba(0,0,0,0.3); --btn-bg: #2a2a4a; --btn-hover: #3a3a5a;
+  --danger: #e74c3c; --danger-hover: #c0392b; --go-color: #2ecc71; --nogo-color: #e74c3c;
+  --neutral-color: #7f8c8d; --group-header-bg: #1a1a3e; --timestamp-bg: #0a1628;
+}
+[data-theme="light"] {
+  --bg-primary: #f5f6fa; --bg-secondary: #ffffff; --bg-card: #ffffff; --bg-input: #f0f0f5;
+  --text-primary: #2c3e50; --text-secondary: #5a6a7a; --text-muted: #95a5a6;
+  --accent: #c0392b; --accent-hover: #e74c3c; --accent-green: #27ae60; --accent-green-hover: #2ecc71;
+  --accent-yellow: #e67e22; --accent-blue: #2980b9; --border-color: #dcdde1;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08); --btn-bg: #ecf0f1; --btn-hover: #dfe6e9;
+  --danger: #e74c3c; --danger-hover: #c0392b; --go-color: #27ae60; --nogo-color: #c0392b;
+  --neutral-color: #95a5a6; --group-header-bg: #f0f0f5; --timestamp-bg: #f8f9fa;
+}
+[data-theme="highcontrast"] {
+  --bg-primary: #000000; --bg-secondary: #111111; --bg-card: #1a1a1a; --bg-input: #222222;
+  --text-primary: #ffffff; --text-secondary: #e0e0e0; --text-muted: #aaaaaa;
+  --accent: #ff4444; --accent-hover: #ff6666; --accent-green: #00ff66; --accent-green-hover: #00cc55;
+  --accent-yellow: #ffcc00; --accent-blue: #4da6ff; --border-color: #444444;
+  --shadow: 0 2px 8px rgba(255,255,255,0.1); --btn-bg: #333333; --btn-hover: #444444;
+  --danger: #ff4444; --danger-hover: #cc3333; --go-color: #00ff66; --nogo-color: #ff4444;
+  --neutral-color: #888888; --group-header-bg: #1a1a1a; --timestamp-bg: #111111;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary); color: var(--text-primary); line-height: 1.5;
+  min-height: 100vh; -webkit-tap-highlight-color: transparent;
+  transition: background var(--transition-speed), color var(--transition-speed);
+}
+/* iOS touch fixes */
+button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn,
+.emergency-btn, .rec-btn, .inline-delete, .time-display {
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-touch-callout: none;
+}
+
+.app-header {
+  position: sticky; top: 0; z-index: 100; background: var(--bg-secondary);
+  border-bottom: 2px solid var(--accent); padding: 10px 16px;
+  display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow);
+}
+.app-title { font-size: 1.1rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.app-title .icon { font-size: 1.3rem; }
+.header-controls { display: flex; gap: 8px; align-items: center; }
+
+.container { max-width: 900px; margin: 0 auto; padding: 12px; }
+
+.tab-bar {
+  display: flex; gap: 4px; margin-bottom: 12px; background: var(--bg-secondary);
+  border-radius: 10px; padding: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.tab-btn {
+  flex: 1; min-width: 0; padding: 10px 8px; border: none; background: transparent;
+  color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; border-radius: 8px;
+  cursor: pointer; white-space: nowrap; transition: all 0.2s;
+}
+.tab-btn.active { background: var(--accent); color: #fff; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.card {
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px;
+  padding: 16px; margin-bottom: 12px; box-shadow: var(--shadow);
+  transition: background var(--transition-speed), border var(--transition-speed);
+}
+.card-title {
+  font-size: 1rem; font-weight: 700; margin-bottom: 12px; color: var(--accent);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.form-group { margin-bottom: 10px; }
+.form-group.full-width { grid-column: 1 / -1; }
+.form-group label {
+  display: block; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);
+  margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px;
+  background: var(--bg-input); color: var(--text-primary); font-size: 0.95rem; transition: border 0.2s;
+}
+.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 16px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s; -webkit-user-select: none; user-select: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-secondary { background: var(--btn-bg); color: var(--text-primary); }
+.btn-secondary:hover { background: var(--btn-hover); }
+.btn-success { background: var(--accent-green); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: var(--danger-hover); }
+.btn-small { padding: 6px 12px; font-size: 0.8rem; }
+.btn-block { width: 100%; }
+
+.timestamp-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: var(--timestamp-bg); border: 1px solid var(--border-color);
+  border-radius: 8px; margin-bottom: 8px; flex-wrap: wrap; gap: 8px;
+}
+.timestamp-item .item-label { font-weight: 600; font-size: 0.9rem; flex: 1; min-width: 120px; }
+.timestamp-item .item-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.timestamp-item .time-display {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.85rem; padding: 4px 10px;
+  background: var(--bg-input); border-radius: 6px; color: var(--accent-green); min-width: 75px;
+  text-align: center; cursor: pointer; border: 1px solid transparent;
+}
+.timestamp-item .time-display:hover { border-color: var(--accent); }
+.timestamp-item .time-display.empty { color: var(--text-muted); }
+
+.tap-btn {
+  padding: 8px 14px; border: none; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; min-width: 70px; min-height: 40px; transition: all 0.15s;
+}
+.tap-btn.enter { background: var(--accent-green); color: #fff; }
+.tap-btn.enter:active { transform: scale(0.95); }
+.tap-btn.exit { background: var(--accent-blue); color: #fff; }
+.tap-btn.exit:active { transform: scale(0.95); }
+.tap-btn.single { background: var(--accent); color: #fff; }
+.tap-btn.single:active { transform: scale(0.95); }
+.tap-btn.done { background: var(--btn-bg); color: var(--text-muted); opacity: 0.7; }
+
+/* Go/No-Go */
+.gng-item {
+  display: flex; align-items: center; padding: 8px 12px; background: var(--timestamp-bg);
+  border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 6px; gap: 8px;
+}
+.gng-item .item-label { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.gng-toggle { display: flex; gap: 4px; }
+.gng-btn {
+  padding: 6px 14px; border: 2px solid transparent; border-radius: 6px; font-weight: 700;
+  font-size: 0.8rem; cursor: pointer; min-height: 36px; transition: all 0.15s;
+}
+.gng-btn.go-btn { background: var(--btn-bg); color: var(--text-secondary); }
+.gng-btn.go-btn.active { background: var(--go-color); color: #fff; border-color: var(--go-color); }
+.gng-btn.nogo-btn { background: var(--btn-bg); color: var(--text-secondary); }
+.gng-btn.nogo-btn.active { background: var(--nogo-color); color: #fff; border-color: var(--nogo-color); }
+.gng-time { font-family: 'SF Mono','Fira Code',monospace; font-size: 0.78rem; color: var(--text-muted); min-width: 65px; text-align: center; }
+
+/* Evo Nav */
+.evo-nav { display: flex; gap: 6px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.evo-nav .evo-pill {
+  padding: 8px 14px; border: 2px solid var(--border-color); border-radius: 20px;
+  font-size: 0.85rem; font-weight: 600; cursor: pointer; background: var(--bg-card);
+  color: var(--text-secondary); transition: all 0.2s; white-space: nowrap;
+}
+.evo-nav .evo-pill.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+
+.group-header {
+  background: var(--group-header-bg); padding: 8px 12px; border-radius: 8px;
+  margin-bottom: 8px; margin-top: 16px; font-weight: 700; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+/* Theme switcher */
+.theme-switcher { display: flex; gap: 4px; background: var(--bg-input); border-radius: 8px; padding: 3px; }
+.theme-btn {
+  padding: 6px 10px; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+  cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.2s;
+}
+.theme-btn.active { background: var(--accent); color: #fff; }
+
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px;
+  padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+.modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--accent); }
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; justify-content: flex-end; }
+
+/* Editable name */
+.editable-name {
+  background: none; border: none; border-bottom: 1px dashed transparent; color: inherit;
+  font: inherit; font-weight: 600; padding: 0 2px; min-width: 80px; max-width: 260px; width: auto;
+}
+.editable-name:hover { border-bottom-color: var(--text-muted); }
+.editable-name:focus { outline: none; border-bottom-color: var(--accent); }
+
+.inline-delete {
+  background: none; border: none; color: var(--danger); font-size: 1rem; cursor: pointer;
+  padding: 2px 6px; opacity: 0.6; transition: opacity 0.2s;
+}
+.inline-delete:hover { opacity: 1; }
+
+.offline-banner {
+  display: none; background: var(--accent-yellow); color: #000; text-align: center;
+  padding: 6px; font-size: 0.8rem; font-weight: 600;
+}
+.offline-banner.show { display: block; }
+
+/* Emergency button */
+.emergency-btn {
+  display: block; width: 100%; padding: 18px; margin-bottom: 14px;
+  border: 3px solid var(--danger); border-radius: 12px; background: var(--danger); color: #fff;
+  font-size: 1.3rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.15s; animation: emergency-pulse 2s infinite;
+}
+.emergency-btn:active { transform: scale(0.97); }
+@keyframes emergency-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.5); }
+  50% { box-shadow: 0 0 0 8px rgba(231,76,60,0); }
+}
+
+.emergency-event { border: 2px solid var(--border-color); border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+.emergency-event.mayday-event { border-color: var(--danger); }
+.emergency-event.urgent-event { border-color: var(--accent-yellow); }
+.emergency-event-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; font-weight: 800; font-size: 0.95rem; cursor: pointer;
+}
+.emergency-event.mayday-event .emergency-event-header { background: var(--danger); color: #fff; }
+.emergency-event.urgent-event .emergency-event-header { background: var(--accent-yellow); color: #000; }
+.emergency-event-body { padding: 10px; background: var(--bg-card); }
+
+/* Roster */
+.roster-company {
+  background: var(--timestamp-bg); border: 1px solid var(--border-color); border-radius: 8px;
+  padding: 10px; margin-bottom: 8px;
+}
+.roster-company-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  font-weight: 700; font-size: 0.9rem;
+}
+.roster-student {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.roster-student input {
+  flex: 1; padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 6px;
+  background: var(--bg-input); color: var(--text-primary); font-size: 0.9rem;
+}
+.roster-student input:focus { outline: none; border-color: var(--accent); }
+
+/* Rotation matrix */
+.matrix-table {
+  width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 8px;
+}
+.matrix-table th, .matrix-table td {
+  border: 1px solid var(--border-color); padding: 6px 8px; text-align: center;
+}
+.matrix-table th {
+  background: var(--group-header-bg); font-weight: 700; color: var(--accent);
+  text-transform: uppercase; font-size: 0.75rem;
+}
+.matrix-table td { background: var(--timestamp-bg); }
+.matrix-table .candidate-name { font-weight: 700; color: var(--accent-green); }
+.matrix-table .company-num { color: var(--text-muted); font-size: 0.75rem; }
+.matrix-table .round-header {
+  background: var(--accent); color: #fff; font-weight: 800; text-align: left; padding: 6px 10px;
+}
+
+/* Assignment tag */
+.assignment-tag {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+  background: var(--btn-bg); border-radius: 4px; font-size: 0.75rem; font-weight: 600;
+  margin: 2px;
+}
+
+/* Candidate select */
+.candidate-select {
+  padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 6px;
+  background: var(--bg-input); color: var(--accent-green); font-size: 0.85rem;
+  font-weight: 700; cursor: pointer;
+}
+.candidate-select:focus { outline: none; border-color: var(--accent); }
+
+@media (max-width: 600px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .app-title span.full-title { display: none; }
+  .app-title span.short-title { display: inline; }
+  .timestamp-item { padding: 8px 10px; }
+  .tap-btn { min-width: 60px; padding: 8px 10px; }
+  .matrix-table { font-size: 0.7rem; }
+  .matrix-table th, .matrix-table td { padding: 4px 3px; }
+}
+@media (min-width: 601px) { .app-title span.short-title { display: none; } }
+/* Clock bar */
+.clock-bar {
+  position: sticky; top: 44px; z-index: 99; background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color); padding: 6px 16px;
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  box-shadow: var(--shadow); flex-wrap: wrap;
+}
+.clock-item {
+  display: flex; flex-direction: column; align-items: center; min-width: 70px;
+}
+.clock-label {
+  font-size: 0.65rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+.clock-value {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 1.05rem; font-weight: 700;
+  color: var(--text-primary);
+}
+.clock-value.current-time { color: var(--accent); }
+.clock-value.session-time { color: var(--accent-green); }
+.clock-value.evo-time { color: var(--accent-blue); }
+
+/* Audio recording */
+.audio-controls {
+  display: flex; align-items: center; gap: 6px;
+}
+.rec-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--danger);
+  background: transparent; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: all 0.2s; position: relative;
+}
+.rec-btn .rec-dot {
+  width: 14px; height: 14px; border-radius: 50%; background: var(--danger); transition: all 0.2s;
+}
+.rec-btn.recording .rec-dot {
+  width: 12px; height: 12px; border-radius: 3px; animation: rec-blink 1s infinite;
+}
+.rec-btn.recording { border-color: var(--danger); background: rgba(231,76,60,0.15); }
+@keyframes rec-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.rec-status {
+  font-size: 0.75rem; font-weight: 600; color: var(--text-muted);
+}
+.rec-status.active { color: var(--danger); }
+.rec-time {
+  font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem;
+  color: var(--danger); font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .clock-bar { padding: 4px 10px; gap: 4px; }
+  .clock-value { font-size: 0.9rem; }
+  .clock-label { font-size: 0.6rem; }
+}
+
+@media print {
+  .app-header, .clock-bar, .tab-bar, .evo-nav, .tap-btn, .btn, .theme-switcher, .gng-toggle, .audio-controls { display: none !important; }
+  .tab-content { display: block !important; }
+  .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
+}
+</style>
+</head>
+<body data-theme="dark">
+
+<div class="offline-banner" id="offlineBanner">You are offline — data is saved locally</div>
+
+<header class="app-header">
+  <div class="app-title">
+    <span class="icon">&#128293;</span>
+    <span class="full-title">Live Fire Training Tracker</span>
+    <span class="short-title">LF Tracker</span>
+  </div>
+  <div class="header-controls">
+    <div class="theme-switcher">
+      <button class="theme-btn active" data-theme="dark" onclick="setTheme('dark')">Dark</button>
+      <button class="theme-btn" data-theme="light" onclick="setTheme('light')">Light</button>
+      <button class="theme-btn" data-theme="highcontrast" onclick="setTheme('highcontrast')">Hi-Con</button>
+    </div>
+    <button class="btn btn-primary btn-small" onclick="exportPDF()">PDF</button>
+  </div>
+</header>
+
+<!-- CLOCK BAR -->
+<div class="clock-bar">
+  <div class="clock-item">
+    <span class="clock-label">Current Time</span>
+    <span class="clock-value current-time" id="clockCurrent">--:--:--</span>
+  </div>
+  <div class="clock-item">
+    <span class="clock-label">Session Total</span>
+    <span class="clock-value session-time" id="clockSession">00:00:00</span>
+  </div>
+  <div class="clock-item">
+    <span class="clock-label">Evolution</span>
+    <span class="clock-value evo-time" id="clockEvo">00:00:00</span>
+  </div>
+  <div class="audio-controls">
+    <button class="rec-btn" id="recBtn" onclick="toggleRecording()" title="Record audio">
+      <span class="rec-dot"></span>
+    </button>
+    <div>
+      <div class="rec-status" id="recStatus">REC</div>
+      <div class="rec-time" id="recTime"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="session" onclick="switchTab('session')">Session / Training</button>
+    <button class="tab-btn" data-tab="roster" onclick="switchTab('roster')">Class Roster</button>
+    <button class="tab-btn" data-tab="evolutions" onclick="switchTab('evolutions')">Evolutions</button>
+  </div>
+
+  <!-- ===== SESSION & TRAINING TAB ===== -->
+  <div class="tab-content active" id="tab-session">
+    <div class="card">
+      <div class="card-title">Session Information</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" id="sessionDate" onchange="saveData()">
+        </div>
+        <div class="form-group">
+          <label>LFI-IC Name</label>
+          <input type="text" id="sessionIC" placeholder="Name" onchange="saveData()">
+        </div>
+        <div class="form-group">
+          <label>Location / Facility</label>
+          <input type="text" id="sessionLocation" placeholder="Facility name" onchange="saveData()">
+        </div>
+        <div class="form-group">
+          <label>Building Type</label>
+          <input type="text" id="sessionBuildingType" placeholder="e.g., Class A, Container" onchange="saveData()">
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+        <button class="btn btn-secondary btn-small" onclick="newSession()">New Session</button>
+        <button class="btn btn-secondary btn-small" onclick="loadSessionList()">Load Session</button>
+      </div>
+    </div>
+
+    <!-- Training Checkpoints -->
+    <div class="card">
+      <div class="card-title">Training Checkpoints</div>
+      <div id="trainingCheckpoints"></div>
+    </div>
+
+    <!-- Go/No-Go -->
+    <div class="card">
+      <div class="card-title">
+        Go / No-Go Check
+        <button class="btn btn-secondary btn-small" onclick="addGNGPosition()">+ Position</button>
+      </div>
+      <div id="gngList"></div>
+    </div>
+  </div>
+
+  <!-- ===== CLASS ROSTER TAB ===== -->
+  <div class="tab-content" id="tab-roster">
+    <!-- Rotation Matrix Preview (at the top) -->
+    <div class="card" id="matrixCard" style="display:none;">
+      <div class="card-title">Rotation Matrix</div>
+      <div id="matrixPreview" style="overflow-x:auto;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Class Roster</div>
+
+      <!-- Assignments -->
+      <div class="form-group">
+        <label>Assignments</label>
+        <div id="assignmentsList"></div>
+        <button class="btn btn-secondary btn-small" style="margin-top:6px;" onclick="addAssignment()">+ Assignment</button>
+      </div>
+
+      <!-- Companies -->
+      <div class="form-group" style="margin-top:12px;">
+        <label>Companies &amp; Students (max 4 per company)</label>
+        <div id="companiesList"></div>
+        <button class="btn btn-secondary btn-small" style="margin-top:6px;" onclick="addCompany()">+ Company</button>
+      </div>
+
+      <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="generateEvolutions()">
+        &#9889; Generate Evolutions &amp; Rotation
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== EVOLUTIONS TAB ===== -->
+  <div class="tab-content" id="tab-evolutions">
+    <button class="emergency-btn" onclick="openEmergencyPage()">&#9888; EMERGENCY</button>
+    <div class="evo-nav" id="evoNav"></div>
+    <div id="evoContent"></div>
+    <button class="btn btn-primary btn-block" style="margin-top:10px;" onclick="addEvolution()">+ Add Evolution</button>
+  </div>
+
+  <!-- ===== EMERGENCY PAGE ===== -->
+  <div class="tab-content" id="tab-emergency">
+    <button class="btn btn-secondary btn-block" onclick="closeEmergencyPage()" style="margin-bottom:12px;">&larr; Back to Evolutions</button>
+    <div style="display:flex;gap:10px;margin-bottom:16px;">
+      <button class="btn btn-danger btn-block" style="padding:16px;font-size:1.1rem;font-weight:800;" onclick="createMayday()">&#128680; NEW MAYDAY</button>
+      <button class="btn btn-block" style="padding:16px;font-size:1.1rem;font-weight:800;background:var(--accent-yellow);color:#000;" onclick="createUrgent()">&#9888; NEW URGENT</button>
+    </div>
+    <div id="emergencyEvents"></div>
+  </div>
+</div>
+
+<!-- TIME EDIT MODAL -->
+<div class="modal-overlay" id="timeEditModal">
+  <div class="modal">
+    <div class="modal-title">Edit Time</div>
+    <div class="form-group">
+      <label>Time (HH:MM:SS)</label>
+      <input type="time" id="timeEditInput" step="1">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-small" onclick="clearTimeEdit()">Clear</button>
+      <button class="btn btn-secondary btn-small" onclick="closeTimeModal()">Cancel</button>
+      <button class="btn btn-primary btn-small" onclick="saveTimeEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ITEM MODAL -->
+<div class="modal-overlay" id="addItemModal">
+  <div class="modal">
+    <div class="modal-title" id="addItemTitle">Add Item</div>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="addItemName" placeholder="Enter name">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-small" onclick="closeAddItemModal()">Cancel</button>
+      <button class="btn btn-primary btn-small" onclick="confirmAddItem()">Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+//  DATA MODEL
+// ==========================================
+let appState = {
+  session: { date: '', ic: '', location: '', buildingType: '' },
+  roster: {
+    assignments: ['Engine', 'Truck', 'TIC', 'Search'],
+    companies: [
+      { name: 'Company 1', students: ['', '', '', ''] },
+      { name: 'Company 2', students: ['', '', '', ''] },
+      { name: 'Company 3', students: ['', '', '', ''] },
+      { name: 'Company 4', students: ['', '', '', ''] }
+    ]
+  },
+  training: {
+    checkpoints: [
+      { id: 'safety_briefing', name: 'Safety Briefing', time: null },
+      { id: 'walkthrough', name: 'Walkthrough', time: null },
+      { id: 'evac_signal', name: 'Emergency Evacuation Signal', time: null }
+    ],
+    goNoGo: [
+      { id: 'gng_1', name: 'Engine 1', status: null, time: null },
+      { id: 'gng_2', name: 'Engine 2', status: null, time: null },
+      { id: 'gng_3', name: 'RIC', status: null, time: null },
+      { id: 'gng_4', name: 'Ignition', status: null, time: null },
+      { id: 'gng_5', name: 'LFI Instructor 1', status: null, time: null },
+      { id: 'gng_6', name: 'LFI Instructor 2', status: null, time: null },
+      { id: 'gng_7', name: 'LFI Instructor 3', status: null, time: null },
+      { id: 'gng_8', name: 'LFI Instructor 4', status: null, time: null },
+      { id: 'gng_9', name: 'EMS/Rehab', status: null, time: null },
+      { id: 'gng_10', name: 'Safety Officer', status: null, time: null }
+    ]
+  },
+  emergencies: [],
+  evolutions: [],
+  currentEvo: 0,
+  theme: 'dark'
+};
+
+const DEFAULT_STAFF = [
+  { name: 'Ignition Team', enterTime: null, exitTime: null },
+  { name: 'Fire Lite', enterTime: null, exitTime: null },
+  { name: 'Fire Extinguish', enterTime: null, exitTime: null },
+  { name: 'RIC Team 1', enterTime: null, exitTime: null },
+  { name: 'RIC Team 2', enterTime: null, exitTime: null },
+  { name: 'Building Clear', enterTime: null, exitTime: null }
+];
+
+// ==========================================
+//  ROTATION MATH
+// ==========================================
+function getCompanyForAssignment(evoIndexInRound, assignmentIndex, numAssignments) {
+  // Returns 0-based company index
+  return ((assignmentIndex - evoIndexInRound) % numAssignments + numAssignments) % numAssignments;
+}
+
+function getCandidateIndex(evoIndexInRound, company) {
+  const filledStudents = company.students.filter(s => s.trim() !== '');
+  if (filledStudents.length === 0) return -1;
+  return evoIndexInRound % filledStudents.length;
+}
+
+function getFilledStudents(company) {
+  return company.students.filter(s => s.trim() !== '');
+}
+
+function buildRotationMatrix() {
+  const r = appState.roster;
+  const numA = r.assignments.length;
+  const numC = r.companies.length;
+  const n = Math.max(numA, numC); // rotation period
+  const maxStudents = Math.max(...r.companies.map(c => getFilledStudents(c).length), 1);
+  const evosPerRound = maxStudents;
+
+  const rounds = [
+    { name: 'Application Step', evolutions: [] },
+    { name: 'Test of Record', evolutions: [] }
+  ];
+
+  for (let round = 0; round < 2; round++) {
+    for (let e = 0; e < evosPerRound; e++) {
+      const evoNum = round * evosPerRound + e + 1;
+      const assignments = [];
+      for (let a = 0; a < numA; a++) {
+        const compIdx = getCompanyForAssignment(e, a, n);
+        let candidateName = '';
+        let candidateIdx = -1;
+        if (compIdx < numC) {
+          const filled = getFilledStudents(r.companies[compIdx]);
+          if (filled.length > 0) {
+            candidateIdx = e % filled.length;
+            candidateName = filled[candidateIdx];
+          }
+        }
+        assignments.push({
+          assignmentName: r.assignments[a],
+          companyIndex: compIdx < numC ? compIdx : -1,
+          candidateName: candidateName,
+          candidateStudentIdx: candidateIdx
+        });
+      }
+      rounds[round].evolutions.push({ evoNum, assignments });
+    }
+  }
+  return rounds;
+}
+
+// ==========================================
+//  GENERATE EVOLUTIONS FROM ROSTER
+// ==========================================
+function generateEvolutions() {
+  const r = appState.roster;
+  const numA = r.assignments.length;
+  const numC = r.companies.length;
+  const n = Math.max(numA, numC);
+  const maxStudents = Math.max(...r.companies.map(c => getFilledStudents(c).length), 1);
+  const evosPerRound = maxStudents;
+  const totalEvos = evosPerRound * 2;
+
+  // Build evolutions
+  appState.evolutions = [];
+  for (let i = 0; i < totalEvos; i++) {
+    const round = i < evosPerRound ? 'application' : 'test';
+    const evoInRound = i < evosPerRound ? i : i - evosPerRound;
+    const assignments = [];
+
+    for (let a = 0; a < numA; a++) {
+      const compIdx = getCompanyForAssignment(evoInRound, a, n);
+      let candidateName = '';
+      if (compIdx < numC) {
+        const filled = getFilledStudents(r.companies[compIdx]);
+        if (filled.length > 0) {
+          candidateName = filled[evoInRound % filled.length];
+        }
+      }
+      assignments.push({
+        name: r.assignments[a],
+        companyIndex: compIdx < numC ? compIdx : -1,
+        candidateName: candidateName,
+        enterTime: null,
+        exitTime: null
+      });
+    }
+
+    appState.evolutions.push({
+      number: i + 1,
+      round: round,
+      burnRoom: '',
+      fuelLoad: '',
+      staff: DEFAULT_STAFF.map(s => ({...s})),
+      assignments: assignments
+    });
+  }
+
+  appState.currentEvo = 0;
+  saveData();
+  renderMatrixPreview();
+  renderEvoNav();
+  renderEvoContent();
+}
+
+// ==========================================
+//  PERSISTENCE
+// ==========================================
+function saveData() {
+  appState.session.date = document.getElementById('sessionDate').value;
+  appState.session.ic = document.getElementById('sessionIC').value;
+  appState.session.location = document.getElementById('sessionLocation').value;
+  appState.session.buildingType = document.getElementById('sessionBuildingType').value;
+  try { localStorage.setItem('lf_tracker_current', JSON.stringify(appState)); } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem('lf_tracker_current');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      appState = {...appState, ...parsed};
+      if (!appState.roster) {
+        appState.roster = {
+          assignments: ['Engine', 'Truck', 'TIC', 'Search'],
+          companies: [
+            { name: 'Company 1', students: ['','','',''] },
+            { name: 'Company 2', students: ['','','',''] },
+            { name: 'Company 3', students: ['','','',''] },
+            { name: 'Company 4', students: ['','','',''] }
+          ]
+        };
+      }
+      if (!appState.emergencies) appState.emergencies = [];
+    }
+  } catch(e) {}
+}
+
+function newSession() {
+  if (!confirm('Start a new session? Current data will be saved to history.')) return;
+  saveToHistory();
+  appState.session = { date: '', ic: '', location: '', buildingType: '' };
+  appState.roster = {
+    assignments: ['Engine', 'Truck', 'TIC', 'Search'],
+    companies: [
+      { name: 'Company 1', students: ['','','',''] },
+      { name: 'Company 2', students: ['','','',''] },
+      { name: 'Company 3', students: ['','','',''] },
+      { name: 'Company 4', students: ['','','',''] }
+    ]
+  };
+  appState.training = {
+    checkpoints: [
+      { id: 'safety_briefing', name: 'Safety Briefing', time: null },
+      { id: 'walkthrough', name: 'Walkthrough', time: null },
+      { id: 'evac_signal', name: 'Emergency Evacuation Signal', time: null }
+    ],
+    goNoGo: appState.training.goNoGo.map(g => ({...g, status: null, time: null})),
+    maydays: []
+  };
+  appState.emergencies = [];
+  appState.evolutions = [];
+  appState.currentEvo = 0;
+  sessionStartTime = null;
+  evoStartTime = null;
+  try { localStorage.removeItem('lf_tracker_session_start'); } catch(e) {}
+  saveData();
+  renderAll();
+  populateSessionForm();
+}
+
+function saveToHistory() {
+  try {
+    let history = JSON.parse(localStorage.getItem('lf_tracker_history') || '[]');
+    history.unshift({ savedAt: new Date().toISOString(), data: JSON.parse(JSON.stringify(appState)) });
+    if (history.length > 20) history = history.slice(0, 20);
+    localStorage.setItem('lf_tracker_history', JSON.stringify(history));
+  } catch(e) {}
+}
+
+function loadSessionList() {
+  try {
+    const history = JSON.parse(localStorage.getItem('lf_tracker_history') || '[]');
+    if (history.length === 0) { alert('No saved sessions found.'); return; }
+    let msg = 'Saved Sessions:\n\n';
+    history.forEach((h, i) => {
+      const d = h.data.session.date || 'No date';
+      const loc = h.data.session.location || 'No location';
+      msg += `${i + 1}. ${d} - ${loc}\n`;
+    });
+    msg += '\nEnter number to load:';
+    const choice = prompt(msg);
+    if (choice && history[parseInt(choice) - 1]) {
+      appState = history[parseInt(choice) - 1].data;
+      if (!appState.roster) {
+        appState.roster = { assignments: ['Engine','Truck','TIC','Search'],
+          companies: [{ name:'Company 1', students:['','','',''] }] };
+      }
+      if (!appState.emergencies) appState.emergencies = [];
+      saveData();
+      renderAll();
+      populateSessionForm();
+    }
+  } catch(e) { alert('Error loading sessions.'); }
+}
+
+// ==========================================
+//  TIME UTILITIES
+// ==========================================
+function now() {
+  return new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+function formatTime(t) { return t || '--:--:--'; }
+
+let timeEditCallback = null;
+function openTimeModal(currentTime, callback) {
+  timeEditCallback = callback;
+  document.getElementById('timeEditInput').value = currentTime || '';
+  document.getElementById('timeEditModal').classList.add('open');
+}
+function closeTimeModal() { document.getElementById('timeEditModal').classList.remove('open'); timeEditCallback = null; }
+function saveTimeEdit() {
+  if (timeEditCallback) timeEditCallback(document.getElementById('timeEditInput').value || null);
+  closeTimeModal();
+}
+function clearTimeEdit() { if (timeEditCallback) timeEditCallback(null); closeTimeModal(); }
+
+// ==========================================
+//  THEME
+// ==========================================
+function setTheme(theme) {
+  document.body.setAttribute('data-theme', theme);
+  appState.theme = theme;
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.getAttribute('data-theme') === theme));
+  saveData();
+}
+
+// ==========================================
+//  TABS
+// ==========================================
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.toggle('active', t.id === 'tab-' + tabId));
+}
+
+// ==========================================
+//  RENDER: Roster
+// ==========================================
+function renderRoster() {
+  renderAssignments();
+  renderCompanies();
+  renderMatrixPreview();
+}
+
+function renderAssignments() {
+  const container = document.getElementById('assignmentsList');
+  let html = '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  appState.roster.assignments.forEach((a, i) => {
+    html += `<div class="assignment-tag">
+      <input class="editable-name" value="${escHtml(a)}" style="max-width:100px;font-size:0.8rem;"
+        onchange="appState.roster.assignments[${i}]=this.value;saveData();renderMatrixPreview();">
+      <button class="inline-delete" onclick="removeAssignment(${i})" style="font-size:0.8rem;">&times;</button>
+    </div>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function addAssignment() {
+  openAddItemModal('Add Assignment', function(name) {
+    appState.roster.assignments.push(name);
+    saveData();
+    renderAssignments();
+    renderMatrixPreview();
+  });
+}
+
+function removeAssignment(i) {
+  if (appState.roster.assignments.length <= 1) { alert('Need at least one assignment.'); return; }
+  appState.roster.assignments.splice(i, 1);
+  saveData();
+  renderAssignments();
+  renderMatrixPreview();
+}
+
+function renderCompanies() {
+  const container = document.getElementById('companiesList');
+  let html = '';
+  appState.roster.companies.forEach((co, ci) => {
+    html += `<div class="roster-company">
+      <div class="roster-company-header">
+        <input class="editable-name" value="${escHtml(co.name)}" style="max-width:140px;"
+          onchange="appState.roster.companies[${ci}].name=this.value;saveData();renderMatrixPreview();">
+        <div style="display:flex;gap:4px;">
+          ${co.students.length < 4 ? `<button class="btn btn-secondary btn-small" onclick="addStudent(${ci})">+ Student</button>` : ''}
+          <button class="inline-delete" onclick="removeCompany(${ci})" title="Remove company">&times;</button>
+        </div>
+      </div>`;
+    co.students.forEach((s, si) => {
+      html += `<div class="roster-student">
+        <span style="font-size:0.8rem;color:var(--text-muted);min-width:20px;">${si+1}.</span>
+        <input value="${escHtml(s)}" placeholder="Student name"
+          onchange="appState.roster.companies[${ci}].students[${si}]=this.value;saveData();renderMatrixPreview();">
+        <button class="inline-delete" onclick="removeStudent(${ci},${si})">&times;</button>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+function addCompany() {
+  const num = appState.roster.companies.length + 1;
+  appState.roster.companies.push({ name: `Company ${num}`, students: ['','','',''] });
+  saveData();
+  renderCompanies();
+  renderMatrixPreview();
+}
+
+function removeCompany(ci) {
+  if (appState.roster.companies.length <= 1) { alert('Need at least one company.'); return; }
+  if (!confirm(`Remove ${appState.roster.companies[ci].name}?`)) return;
+  appState.roster.companies.splice(ci, 1);
+  saveData();
+  renderCompanies();
+  renderMatrixPreview();
+}
+
+function addStudent(ci) {
+  if (appState.roster.companies[ci].students.length >= 4) { alert('Maximum 4 students per company (state policy).'); return; }
+  appState.roster.companies[ci].students.push('');
+  saveData();
+  renderCompanies();
+  renderMatrixPreview();
+}
+
+function removeStudent(ci, si) {
+  if (appState.roster.companies[ci].students.length <= 1) { alert('Need at least one student per company.'); return; }
+  appState.roster.companies[ci].students.splice(si, 1);
+  saveData();
+  renderCompanies();
+  renderMatrixPreview();
+}
+
+// ==========================================
+//  RENDER: Matrix Preview
+// ==========================================
+function renderMatrixPreview() {
+  const card = document.getElementById('matrixCard');
+  const container = document.getElementById('matrixPreview');
+  const r = appState.roster;
+
+  // Need at least one company with a named student
+  const hasStudents = r.companies.some(c => getFilledStudents(c).length > 0);
+  if (!hasStudents) { card.style.display = 'none'; return; }
+
+  card.style.display = 'block';
+  const matrix = buildRotationMatrix();
+
+  let html = '<table class="matrix-table"><thead><tr><th>Evo</th>';
+  r.assignments.forEach(a => { html += `<th>${escHtml(a)}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  matrix.forEach(round => {
+    html += `<tr><td colspan="${r.assignments.length + 1}" class="round-header">${round.name}</td></tr>`;
+    round.evolutions.forEach(evo => {
+      html += `<tr><td><strong>${evo.evoNum}</strong></td>`;
+      evo.assignments.forEach(a => {
+        if (a.companyIndex >= 0 && a.companyIndex < r.companies.length) {
+          const coName = r.companies[a.companyIndex].name;
+          const coNum = a.companyIndex + 1;
+          html += `<td><span class="company-num">${coNum}</span> - <span class="candidate-name">${escHtml(a.candidateName) || '—'}</span></td>`;
+        } else {
+          html += `<td style="color:var(--text-muted);">—</td>`;
+        }
+      });
+      html += '</tr>';
+    });
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ==========================================
+//  RENDER: Training Checkpoints
+// ==========================================
+function renderCheckpoints() {
+  const container = document.getElementById('trainingCheckpoints');
+  let html = '';
+  appState.training.checkpoints.forEach((cp, i) => {
+    const hasTime = cp.time !== null;
+    html += `<div class="timestamp-item">
+      <input class="editable-name" value="${escHtml(cp.name)}"
+        onchange="appState.training.checkpoints[${i}].name=this.value;saveData();">
+      <div class="item-actions">
+        <span class="time-display ${hasTime ? '' : 'empty'}"
+          onclick="openTimeModal('${cp.time || ''}', function(t){ appState.training.checkpoints[${i}].time=t; saveData(); renderCheckpoints(); })">
+          ${formatTime(cp.time)}</span>
+        <button class="tap-btn single ${hasTime ? 'done' : ''}"
+          onclick="if(!appState.training.checkpoints[${i}].time){appState.training.checkpoints[${i}].time=now();saveData();renderCheckpoints();}">
+          ${hasTime ? 'Done' : 'Tap'}</button>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ==========================================
+//  RENDER: Go/No-Go
+// ==========================================
+function renderGNG() {
+  const container = document.getElementById('gngList');
+  let html = '';
+  appState.training.goNoGo.forEach((g, i) => {
+    html += `<div class="gng-item">
+      <input class="editable-name" value="${escHtml(g.name)}"
+        onchange="appState.training.goNoGo[${i}].name=this.value;saveData();">
+      <div class="gng-toggle">
+        <button class="gng-btn go-btn ${g.status === 'go' ? 'active' : ''}" onclick="setGNG(${i},'go')">GO</button>
+        <button class="gng-btn nogo-btn ${g.status === 'nogo' ? 'active' : ''}" onclick="setGNG(${i},'nogo')">NO-GO</button>
+      </div>
+      <span class="gng-time">${formatTime(g.time)}</span>
+      <button class="inline-delete" onclick="removeGNG(${i})" title="Remove">&times;</button>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+
+function setGNG(i, status) {
+  const g = appState.training.goNoGo[i];
+  if (g.status === status) { g.status = null; g.time = null; }
+  else { g.status = status; g.time = now(); }
+  saveData(); renderGNG();
+}
+
+function addGNGPosition() {
+  openAddItemModal('Add Go/No-Go Position', function(name) {
+    appState.training.goNoGo.push({ id: 'gng_' + Date.now(), name, status: null, time: null });
+    saveData(); renderGNG();
+  });
+}
+
+function removeGNG(i) {
+  if (confirm('Remove "' + appState.training.goNoGo[i].name + '"?')) {
+    appState.training.goNoGo.splice(i, 1); saveData(); renderGNG();
+  }
+}
+
+// ==========================================
+//  RENDER: Evolution Nav + Content
+// ==========================================
+function renderEvoNav() {
+  const nav = document.getElementById('evoNav');
+  if (appState.evolutions.length === 0) { nav.innerHTML = ''; return; }
+
+  let html = '';
+  const maxStudents = appState.roster ? Math.max(...appState.roster.companies.map(c => getFilledStudents(c).length), 1) : 4;
+
+  appState.evolutions.forEach((evo, i) => {
+    const roundLabel = evo.round === 'application' ? 'A' : 'T';
+    html += `<button class="evo-pill ${i === appState.currentEvo ? 'active' : ''}"
+      onclick="appState.currentEvo=${i};startEvoTimer();startSessionTimer();saveData();renderEvoNav();renderEvoContent();"
+      title="${evo.round === 'application' ? 'Application Step' : 'Test of Record'}">
+      ${roundLabel}${evo.number}</button>`;
+  });
+  nav.innerHTML = html;
+}
+
+function renderEvoContent() {
+  const container = document.getElementById('evoContent');
+  if (appState.evolutions.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;">Set up your roster and click "Generate Evolutions" to get started.</p>';
+    return;
+  }
+  const evo = appState.evolutions[appState.currentEvo];
+  if (!evo) return;
+  const ei = appState.currentEvo;
+  const roundLabel = evo.round === 'application' ? 'Application Step' : 'Test of Record';
+
+  let html = `<div class="card">
+    <div class="card-title">
+      <span>Evolution ${evo.number} <span style="font-size:0.8rem;color:var(--text-secondary);font-weight:400;">(${roundLabel})</span></span>
+      <button class="btn btn-danger btn-small" onclick="removeEvolution(${ei})">Remove</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Burn Room</label>
+        <input type="text" value="${escHtml(evo.burnRoom)}" placeholder="Room assignment"
+          onchange="appState.evolutions[${ei}].burnRoom=this.value;saveData();">
+      </div>
+      <div class="form-group">
+        <label>Fuel Load Design</label>
+        <select onchange="appState.evolutions[${ei}].fuelLoad=this.value;saveData();">
+          <option value="" ${evo.fuelLoad===''?'selected':''}>Select...</option>
+          <option value="Vertical" ${evo.fuelLoad==='Vertical'?'selected':''}>Vertical</option>
+          <option value="Horizontal" ${evo.fuelLoad==='Horizontal'?'selected':''}>Horizontal</option>
+          <option value="Triangle" ${evo.fuelLoad==='Triangle'?'selected':''}>Triangle</option>
+          <option value="Other" ${evo.fuelLoad==='Other'?'selected':''}>Other</option>
+        </select>
+      </div>
+    </div>
+  </div>`;
+
+  // Staff Positions
+  html += `<div class="group-header">Staff Positions
+    <button class="btn btn-secondary btn-small" onclick="addStaffToEvo(${ei})">+ Add</button>
+  </div>`;
+  evo.staff.forEach((s, si) => {
+    html += renderStaffItem(s, ei, si);
+  });
+
+  // Student Assignments
+  html += `<div class="group-header">Student Assignments</div>`;
+  if (evo.assignments && evo.assignments.length > 0) {
+    evo.assignments.forEach((a, ai) => {
+      html += renderAssignmentItem(a, ei, ai);
+    });
+  } else {
+    html += '<p style="color:var(--text-muted);padding:8px;">No assignments. Generate evolutions from roster.</p>';
+  }
+
+  container.innerHTML = html;
+}
+
+function renderStaffItem(item, evoIdx, itemIdx) {
+  const isSingle = ['Building Clear', 'Fire Lite', 'Fire Extinguish'].includes(item.name);
+  const path = `appState.evolutions[${evoIdx}].staff[${itemIdx}]`;
+
+  let html = `<div class="timestamp-item">
+    <input class="editable-name" value="${escHtml(item.name)}"
+      onchange="${path}.name=this.value;saveData();">
+    <div class="item-actions">
+      <span class="time-display ${item.enterTime ? '' : 'empty'}"
+        onclick="openTimeModal('${item.enterTime||''}', function(t){ ${path}.enterTime=t; saveData(); renderEvoContent(); })">
+        ${formatTime(item.enterTime)}</span>
+      <button class="tap-btn enter ${item.enterTime ? 'done' : ''}"
+        onclick="if(!${path}.enterTime){${path}.enterTime=now();saveData();renderEvoContent();}">
+        ${isSingle ? (item.name === 'Fire Lite' ? 'Lite' : item.name === 'Fire Extinguish' ? 'Extinguish' : 'Clear') : 'Enter'}</button>`;
+
+  if (!isSingle) {
+    html += `<span class="time-display ${item.exitTime ? '' : 'empty'}"
+      onclick="openTimeModal('${item.exitTime||''}', function(t){ ${path}.exitTime=t; saveData(); renderEvoContent(); })">
+      ${formatTime(item.exitTime)}</span>
+    <button class="tap-btn exit ${item.exitTime ? 'done' : ''}"
+      onclick="if(!${path}.exitTime){${path}.exitTime=now();saveData();renderEvoContent();}">Exit</button>`;
+  }
+
+  html += `<button class="inline-delete" onclick="removeStaffFromEvo(${evoIdx},${itemIdx})">&times;</button>
+    </div></div>`;
+  return html;
+}
+
+function renderAssignmentItem(a, evoIdx, aIdx) {
+  const r = appState.roster;
+  const evo = appState.evolutions[evoIdx];
+  const path = `appState.evolutions[${evoIdx}].assignments[${aIdx}]`;
+  const coIdx = a.companyIndex;
+  const coName = coIdx >= 0 && coIdx < r.companies.length ? r.companies[coIdx].name : 'Unassigned';
+  const coNum = coIdx >= 0 ? coIdx + 1 : '?';
+
+  // Build candidate dropdown options
+  let candidateOptions = '<option value="">— Select Candidate —</option>';
+  if (coIdx >= 0 && coIdx < r.companies.length) {
+    const filled = getFilledStudents(r.companies[coIdx]);
+    // Determine which students are already used in this round
+    const usedInRound = getUsedCandidates(evoIdx, coIdx);
+    filled.forEach(s => {
+      const isUsed = usedInRound.has(s) && s !== a.candidateName;
+      const sel = s === a.candidateName ? 'selected' : '';
+      const dis = isUsed ? 'disabled' : '';
+      candidateOptions += `<option value="${escHtml(s)}" ${sel} ${dis}>${escHtml(s)}${isUsed ? ' (already assigned)' : ''}</option>`;
+    });
+  }
+
+  let html = `<div class="timestamp-item" style="flex-direction:column;align-items:stretch;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+      <span class="item-label" style="min-width:auto;">
+        <strong>${escHtml(a.name)}</strong>
+        <span style="font-size:0.8rem;color:var(--text-muted);margin-left:6px;">Co ${coNum} - ${escHtml(coName)}</span>
+      </span>
+      <select class="candidate-select" onchange="${path}.candidateName=this.value;saveData();renderEvoContent();">
+        ${candidateOptions}
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:0.8rem;color:var(--text-secondary);min-width:65px;">
+        ${a.candidateName ? '&#9733; ' + escHtml(a.candidateName) : 'No candidate'}
+      </span>
+      <div class="item-actions" style="margin-left:auto;">
+        <span class="time-display ${a.enterTime ? '' : 'empty'}"
+          onclick="openTimeModal('${a.enterTime||''}', function(t){ ${path}.enterTime=t; saveData(); renderEvoContent(); })">
+          ${formatTime(a.enterTime)}</span>
+        <button class="tap-btn enter ${a.enterTime ? 'done' : ''}"
+          onclick="if(!${path}.enterTime){${path}.enterTime=now();saveData();renderEvoContent();}">Enter</button>
+        <span class="time-display ${a.exitTime ? '' : 'empty'}"
+          onclick="openTimeModal('${a.exitTime||''}', function(t){ ${path}.exitTime=t; saveData(); renderEvoContent(); })">
+          ${formatTime(a.exitTime)}</span>
+        <button class="tap-btn exit ${a.exitTime ? 'done' : ''}"
+          onclick="if(!${path}.exitTime){${path}.exitTime=now();saveData();renderEvoContent();}">Exit</button>
+      </div>
+    </div>
+  </div>`;
+  return html;
+}
+
+function getUsedCandidates(currentEvoIdx, companyIdx) {
+  // Returns a Set of student names already selected as candidate
+  // in the same round for the same company (excluding current evo)
+  const evo = appState.evolutions[currentEvoIdx];
+  const round = evo.round;
+  const used = new Set();
+
+  appState.evolutions.forEach((e, i) => {
+    if (i === currentEvoIdx) return;
+    if (e.round !== round) return;
+    if (!e.assignments) return;
+    e.assignments.forEach(a => {
+      if (a.companyIndex === companyIdx && a.candidateName) {
+        used.add(a.candidateName);
+      }
+    });
+  });
+  return used;
+}
+
+function addEvolution() {
+  const num = appState.evolutions.length + 1;
+  const r = appState.roster;
+  const assignments = r.assignments.map(a => ({
+    name: a, companyIndex: -1, candidateName: '', enterTime: null, exitTime: null
+  }));
+  appState.evolutions.push({
+    number: num, round: 'test', burnRoom: '', fuelLoad: '',
+    staff: DEFAULT_STAFF.map(s => ({...s})), assignments: assignments
+  });
+  appState.currentEvo = appState.evolutions.length - 1;
+  saveData(); renderEvoNav(); renderEvoContent();
+}
+
+function removeEvolution(idx) {
+  if (!confirm(`Remove Evolution ${appState.evolutions[idx].number}?`)) return;
+  appState.evolutions.splice(idx, 1);
+  appState.evolutions.forEach((e, i) => e.number = i + 1);
+  if (appState.currentEvo >= appState.evolutions.length) appState.currentEvo = Math.max(0, appState.evolutions.length - 1);
+  saveData(); renderEvoNav(); renderEvoContent();
+}
+
+function addStaffToEvo(evoIdx) {
+  openAddItemModal('Add Staff Position', function(name) {
+    appState.evolutions[evoIdx].staff.push({ name, enterTime: null, exitTime: null });
+    saveData(); renderEvoContent();
+  });
+}
+
+function removeStaffFromEvo(evoIdx, itemIdx) {
+  const item = appState.evolutions[evoIdx].staff[itemIdx];
+  if (!confirm(`Remove "${item.name}"?`)) return;
+  appState.evolutions[evoIdx].staff.splice(itemIdx, 1);
+  saveData(); renderEvoContent();
+}
+
+// ==========================================
+//  EMERGENCY PAGE
+// ==========================================
+const MAYDAY_STEPS = ['Mayday Called','Evacuate','RIC Deployed','RIC Exited','At the Victim','Victim Exited','Victim at EMS','EMS Transport'];
+const URGENT_STEPS = ['Urgent Call','Evacuate','Pause Evolution','Urgent Cleared'];
+
+function openEmergencyPage() {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-emergency').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  renderEmergencyEvents();
+}
+
+function closeEmergencyPage() {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-evolutions').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === 'evolutions'));
+}
+
+function createMayday() {
+  const num = appState.emergencies.filter(e => e.type === 'mayday').length + 1;
+  const ev = { id: 'mayday_'+Date.now(), type: 'mayday', number: num,
+    steps: MAYDAY_STEPS.map(name => ({ name, time: null })), collapsed: false };
+  ev.steps[0].time = now();
+  appState.emergencies.push(ev);
+  saveData(); renderEmergencyEvents();
+}
+
+function createUrgent() {
+  const num = appState.emergencies.filter(e => e.type === 'urgent').length + 1;
+  const ev = { id: 'urgent_'+Date.now(), type: 'urgent', number: num,
+    steps: URGENT_STEPS.map(name => ({ name, time: null })), collapsed: false };
+  ev.steps[0].time = now();
+  appState.emergencies.push(ev);
+  saveData(); renderEmergencyEvents();
+}
+
+function toggleEmergencyCollapse(idx) {
+  appState.emergencies[idx].collapsed = !appState.emergencies[idx].collapsed;
+  saveData(); renderEmergencyEvents();
+}
+
+function removeEmergency(idx) {
+  const e = appState.emergencies[idx];
+  const label = e.type === 'mayday' ? `Mayday #${e.number}` : `Urgent #${e.number}`;
+  if (!confirm(`Remove ${label}?`)) return;
+  appState.emergencies.splice(idx, 1);
+  let mNum = 1, uNum = 1;
+  appState.emergencies.forEach(ev => { if (ev.type === 'mayday') ev.number = mNum++; else ev.number = uNum++; });
+  saveData(); renderEmergencyEvents();
+}
+
+function renderEmergencyEvents() {
+  const container = document.getElementById('emergencyEvents');
+  if (!container) return;
+  if (appState.emergencies.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;">No emergency events logged.</p>';
+    return;
+  }
+  let html = '';
+  appState.emergencies.forEach((ev, ei) => {
+    const isMayday = ev.type === 'mayday';
+    const label = isMayday ? `Mayday #${ev.number}` : `Urgent #${ev.number}`;
+    const icon = isMayday ? '&#128680;' : '&#9888;';
+    const cls = isMayday ? 'mayday-event' : 'urgent-event';
+    html += `<div class="emergency-event ${cls}">
+      <div class="emergency-event-header" onclick="toggleEmergencyCollapse(${ei})">
+        <span>${icon} ${label}</span>
+        <span style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:0.8rem;font-weight:400;">${ev.collapsed ? '&#9654; Show' : '&#9660; Hide'}</span>
+          <button class="inline-delete" onclick="event.stopPropagation();removeEmergency(${ei})" style="color:inherit;">&times;</button>
+        </span>
+      </div>`;
+    if (!ev.collapsed) {
+      html += '<div class="emergency-event-body">';
+      ev.steps.forEach((step, si) => {
+        const hasTime = step.time !== null;
+        html += `<div class="timestamp-item">
+          <span class="item-label">${escHtml(step.name)}</span>
+          <div class="item-actions">
+            <span class="time-display ${hasTime ? '' : 'empty'}"
+              onclick="openTimeModal('${step.time||''}', function(t){ appState.emergencies[${ei}].steps[${si}].time=t; saveData(); renderEmergencyEvents(); })">
+              ${formatTime(step.time)}</span>
+            <button class="tap-btn single ${hasTime ? 'done' : ''}"
+              onclick="if(!appState.emergencies[${ei}].steps[${si}].time){appState.emergencies[${ei}].steps[${si}].time=now();saveData();renderEmergencyEvents();}">
+              ${hasTime ? 'Done' : 'Tap'}</button>
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+// ==========================================
+//  ADD ITEM MODAL
+// ==========================================
+let addItemCallback = null;
+function openAddItemModal(title, callback) {
+  addItemCallback = callback;
+  document.getElementById('addItemTitle').textContent = title;
+  document.getElementById('addItemName').value = '';
+  document.getElementById('addItemModal').classList.add('open');
+  setTimeout(() => document.getElementById('addItemName').focus(), 100);
+}
+function closeAddItemModal() { document.getElementById('addItemModal').classList.remove('open'); addItemCallback = null; }
+function confirmAddItem() {
+  const name = document.getElementById('addItemName').value.trim();
+  if (name && addItemCallback) addItemCallback(name);
+  closeAddItemModal();
+}
+try { document.getElementById('addItemName').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmAddItem(); }); } catch(e) {}
+
+// ==========================================
+//  PDF EXPORT
+// ==========================================
+function exportPDF() {
+  const win = window.open('', '_blank');
+  const s = appState.session;
+  const r = appState.roster;
+  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Live Fire Training Report</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 11px; margin: 20px; color: #222; }
+    h1 { font-size: 18px; text-align: center; margin-bottom: 2px; }
+    h2 { font-size: 14px; margin-top: 16px; margin-bottom: 6px; border-bottom: 2px solid #c0392b; padding-bottom: 3px; color: #c0392b; }
+    h3 { font-size: 12px; margin-top: 10px; margin-bottom: 4px; color: #555; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; margin-bottom: 10px; }
+    .info-item { display: flex; gap: 6px; }
+    .info-label { font-weight: bold; min-width: 100px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+    th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
+    th { background: #f0f0f0; font-weight: bold; }
+    .go { color: #27ae60; font-weight: bold; }
+    .nogo { color: #c0392b; font-weight: bold; }
+    .mayday { color: #c0392b; font-weight: bold; }
+    .candidate { font-weight: bold; color: #27ae60; }
+    @media print { body { margin: 10px; } }
+  </style></head><body>`;
+
+  html += `<h1>&#128293; Live Fire Training Report</h1>`;
+  html += `<div class="info-grid">
+    <div class="info-item"><span class="info-label">Date:</span> ${s.date || 'N/A'}</div>
+    <div class="info-item"><span class="info-label">LFI-IC:</span> ${s.ic || 'N/A'}</div>
+    <div class="info-item"><span class="info-label">Location:</span> ${s.location || 'N/A'}</div>
+    <div class="info-item"><span class="info-label">Building Type:</span> ${s.buildingType || 'N/A'}</div>
+  </div>`;
+
+  // Rotation Matrix
+  if (r && r.companies.some(c => getFilledStudents(c).length > 0)) {
+    html += `<h2>Rotation Matrix</h2>`;
+    const matrix = buildRotationMatrix();
+    html += `<table><thead><tr><th>Evo</th>`;
+    r.assignments.forEach(a => { html += `<th>${escHtml(a)}</th>`; });
+    html += `</tr></thead><tbody>`;
+    matrix.forEach(round => {
+      html += `<tr><td colspan="${r.assignments.length+1}" style="background:#c0392b;color:#fff;font-weight:bold;">${round.name}</td></tr>`;
+      round.evolutions.forEach(evo => {
+        html += `<tr><td><strong>${evo.evoNum}</strong></td>`;
+        evo.assignments.forEach(a => {
+          if (a.companyIndex >= 0 && a.companyIndex < r.companies.length) {
+            html += `<td>${a.companyIndex+1} - <span class="candidate">${escHtml(a.candidateName)||'—'}</span></td>`;
+          } else { html += `<td>—</td>`; }
+        });
+        html += `</tr>`;
+      });
+    });
+    html += `</tbody></table>`;
+  }
+
+  // Training Checkpoints
+  html += `<h2>Training Checkpoints</h2><table><tr><th>Item</th><th>Time</th></tr>`;
+  appState.training.checkpoints.forEach(cp => {
+    html += `<tr><td>${escHtml(cp.name)}</td><td>${cp.time || '--'}</td></tr>`;
+  });
+  html += `</table>`;
+
+  // Go/No-Go
+  html += `<h2>Go / No-Go Check</h2><table><tr><th>Position</th><th>Status</th><th>Time</th></tr>`;
+  appState.training.goNoGo.forEach(g => {
+    const cls = g.status === 'go' ? 'go' : (g.status === 'nogo' ? 'nogo' : '');
+    html += `<tr><td>${escHtml(g.name)}</td><td class="${cls}">${g.status ? g.status.toUpperCase() : '--'}</td><td>${g.time || '--'}</td></tr>`;
+  });
+  html += `</table>`;
+
+  // Emergency Events
+  if (appState.emergencies && appState.emergencies.length > 0) {
+    html += `<h2>Emergency Events</h2>`;
+    appState.emergencies.forEach(ev => {
+      const label = ev.type === 'mayday' ? 'Mayday #' + ev.number : 'Urgent #' + ev.number;
+      html += `<h3 class="${ev.type === 'mayday' ? 'mayday' : ''}">${label}</h3>`;
+      html += `<table><tr><th>Step</th><th>Time</th></tr>`;
+      ev.steps.forEach(step => { html += `<tr><td>${escHtml(step.name)}</td><td>${step.time || '--'}</td></tr>`; });
+      html += `</table>`;
+    });
+  }
+
+  // Evolutions
+  appState.evolutions.forEach(evo => {
+    const roundLabel = evo.round === 'application' ? 'Application Step' : 'Test of Record';
+    html += `<h2>Evolution ${evo.number} (${roundLabel})</h2>`;
+    html += `<div class="info-grid">
+      <div class="info-item"><span class="info-label">Burn Room:</span> ${evo.burnRoom || 'N/A'}</div>
+      <div class="info-item"><span class="info-label">Fuel Load:</span> ${evo.fuelLoad || 'N/A'}</div>
+    </div>`;
+
+    html += `<h3>Staff Positions</h3><table><tr><th>Position</th><th>Enter/Action</th><th>Exit</th></tr>`;
+    evo.staff.forEach(s => { html += `<tr><td>${escHtml(s.name)}</td><td>${s.enterTime||'--'}</td><td>${s.exitTime||'--'}</td></tr>`; });
+    html += `</table>`;
+
+    if (evo.assignments && evo.assignments.length > 0) {
+      html += `<h3>Student Assignments</h3><table><tr><th>Assignment</th><th>Company</th><th>Candidate LFI</th><th>Enter</th><th>Exit</th></tr>`;
+      evo.assignments.forEach(a => {
+        const coName = a.companyIndex >= 0 && a.companyIndex < r.companies.length ? r.companies[a.companyIndex].name : '—';
+        html += `<tr><td>${escHtml(a.name)}</td><td>${escHtml(coName)}</td><td class="candidate">${escHtml(a.candidateName)||'—'}</td><td>${a.enterTime||'--'}</td><td>${a.exitTime||'--'}</td></tr>`;
+      });
+      html += `</table>`;
+    }
+  });
+
+  html += `<div style="margin-top:20px;text-align:center;color:#999;font-size:10px;">
+    Generated by Live Fire Training Tracker — ${new Date().toLocaleString()}</div>`;
+  html += `</body></html>`;
+  win.document.write(html);
+  win.document.close();
+  setTimeout(() => { win.print(); }, 500);
+}
+
+// ==========================================
+//  UTILITIES
+// ==========================================
+function escHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str || '';
+  return div.innerHTML;
+}
+
+function populateSessionForm() {
+  document.getElementById('sessionDate').value = appState.session.date || '';
+  document.getElementById('sessionIC').value = appState.session.ic || '';
+  document.getElementById('sessionLocation').value = appState.session.location || '';
+  document.getElementById('sessionBuildingType').value = appState.session.buildingType || '';
+}
+
+function renderAll() {
+  renderRoster();
+  renderCheckpoints();
+  renderGNG();
+  renderEmergencyEvents();
+  renderEvoNav();
+  renderEvoContent();
+}
+
+// ==========================================
+//  CLOCK SYSTEM
+// ==========================================
+let sessionStartTime = null;
+let evoStartTime = null;
+let clockInterval = null;
+
+function formatElapsed(ms) {
+  if (ms < 0) ms = 0;
+  const totalSec = Math.floor(ms / 1000);
+  const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+  const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+  const s = String(totalSec % 60).padStart(2, '0');
+  return `${h}:${m}:${s}`;
+}
+
+function startClock() {
+  if (clockInterval) clearInterval(clockInterval);
+  clockInterval = setInterval(updateClock, 1000);
+  updateClock();
+}
+
+function updateClock() {
+  const nowDate = new Date();
+  document.getElementById('clockCurrent').textContent =
+    nowDate.toLocaleTimeString('en-US', { hour12: false, hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
+  if (sessionStartTime) {
+    document.getElementById('clockSession').textContent = formatElapsed(nowDate - sessionStartTime);
+  }
+  if (evoStartTime) {
+    document.getElementById('clockEvo').textContent = formatElapsed(nowDate - evoStartTime);
+  } else {
+    document.getElementById('clockEvo').textContent = '00:00:00';
+  }
+
+  // Update recording time
+  if (audioRecording && recStartTime) {
+    document.getElementById('recTime').textContent = formatElapsed(nowDate - recStartTime);
+  }
+}
+
+function startSessionTimer() {
+  if (!sessionStartTime) {
+    sessionStartTime = new Date();
+    try { localStorage.setItem('lf_tracker_session_start', sessionStartTime.toISOString()); } catch(e) {}
+  }
+}
+
+function startEvoTimer() {
+  evoStartTime = new Date();
+}
+
+function resetEvoTimer() {
+  evoStartTime = null;
+}
+
+// ==========================================
+//  AUDIO RECORDING
+// ==========================================
+let mediaRecorder = null;
+let audioChunks = [];
+let audioRecording = false;
+let recStartTime = null;
+
+async function toggleRecording() {
+  if (!audioRecording) {
+    await startRecording();
+  } else {
+    stopRecording();
+  }
+}
+
+async function startRecording() {
+  if (typeof MediaRecorder === 'undefined') {
+    alert('Audio recording is not supported on this device/browser. Try using Safari on iPad or a desktop browser.');
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    // Determine best supported format
+    let mimeType = '';
+    try {
+      if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+      else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mimeType = 'audio/webm;codecs=opus';
+      else if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+    } catch(e) {}
+
+    mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    const recMime = mediaRecorder.mimeType || mimeType || 'audio/webm';
+    mediaRecorder.onstop = () => {
+      const ext = recMime.includes('mp4') ? 'm4a' : 'webm';
+      const blob = new Blob(audioChunks, { type: recMime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const dateStr = appState.session.date || new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `LiveFire_${dateStr}_recording.${ext}`;
+      a.click();
+      URL.revokeObjectURL(url);
+      // Stop all tracks
+      stream.getTracks().forEach(t => t.stop());
+    };
+
+    mediaRecorder.start(10000); // Collect data every 10 seconds
+    audioRecording = true;
+    recStartTime = new Date();
+
+    document.getElementById('recBtn').classList.add('recording');
+    document.getElementById('recStatus').textContent = 'REC';
+    document.getElementById('recStatus').classList.add('active');
+
+    // Also start session timer if not started
+    startSessionTimer();
+  } catch(err) {
+    alert('Could not access microphone. Please allow microphone access and try again.\n\n' + err.message);
+  }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  audioRecording = false;
+  recStartTime = null;
+
+  document.getElementById('recBtn').classList.remove('recording');
+  document.getElementById('recStatus').textContent = 'REC';
+  document.getElementById('recStatus').classList.remove('active');
+  document.getElementById('recTime').textContent = '';
+}
+
+// ==========================================
+//  OFFLINE / INIT
+// ==========================================
+window.addEventListener('online', () => document.getElementById('offlineBanner').classList.remove('show'));
+window.addEventListener('offline', () => document.getElementById('offlineBanner').classList.add('show'));
+
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    loadData();
+    setTheme(appState.theme || 'dark');
+    if (!appState.emergencies) appState.emergencies = [];
+    if (!appState.roster) {
+      appState.roster = {
+        assignments: ['Engine','Truck','TIC','Search'],
+        companies: [
+          { name:'Company 1', students:['','','',''] },
+          { name:'Company 2', students:['','','',''] },
+          { name:'Company 3', students:['','','',''] },
+          { name:'Company 4', students:['','','',''] }
+        ]
+      };
+    }
+    populateSessionForm();
+    renderAll();
+    if (!appState.session.date) {
+      document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
+      saveData();
+    }
+    if (!navigator.onLine) document.getElementById('offlineBanner').classList.add('show');
+  } catch(e) { console.error('Init error:', e); }
+
+  // Restore session timer if it was running
+  try {
+    const savedStart = localStorage.getItem('lf_tracker_session_start');
+    if (savedStart) sessionStartTime = new Date(savedStart);
+  } catch(e) {}
+
+  // Start the clock
+  try { startClock(); } catch(e) {}
+});
+
+try {
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    const swCode = `
+      const CACHE_NAME = 'lf-tracker-v2';
+      self.addEventListener('install', e => { self.skipWaiting(); });
+      self.addEventListener('activate', e => { e.waitUntil(clients.claim()); });
+      self.addEventListener('fetch', e => {
+        if (e.request.url.includes(self.location.origin)) {
+          e.respondWith(
+            caches.match(e.request).then(r => r || fetch(e.request).then(resp => {
+              const clone = resp.clone();
+              caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+              return resp;
+            }).catch(() => caches.match(e.request)))
+          );
+        }
+      });
+    `;
+    const blob = new Blob([swCode], { type: 'application/javascript' });
+    navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {});
+  }
+} catch(e) { /* Service worker not supported in this context */ }
+</script>
+</body>
+</html>
