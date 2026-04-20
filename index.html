@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Live Fire Training Tracker</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <style>
 :root { --transition-speed: 0.2s; }
 
@@ -257,6 +258,69 @@ button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn
 }
 .roster-student input:focus { outline: none; border-color: var(--accent); }
 
+/* Medical */
+.med-person {
+  background: var(--timestamp-bg); border: 1px solid var(--border-color); border-radius: 10px;
+  margin-bottom: 12px; overflow: hidden;
+}
+.med-person-header {
+  display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+  background: var(--group-header-bg); font-weight: 700; font-size: 0.9rem; cursor: pointer;
+  color: var(--accent);
+}
+.med-person-body { padding: 10px; }
+.med-reading {
+  background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px;
+  padding: 10px; margin-bottom: 8px;
+}
+.med-reading-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  font-weight: 700; font-size: 0.85rem;
+}
+.med-reading-header .baseline-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;
+  font-weight: 700; text-transform: uppercase;
+}
+.med-reading-header .baseline-tag.baseline { background: var(--accent-blue); color: #fff; }
+.med-reading-header .baseline-tag.rehab { background: var(--accent-green); color: #fff; }
+.med-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.med-field { display: flex; flex-direction: column; gap: 2px; }
+.med-field label {
+  font-size: 0.7rem; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.3px;
+}
+.med-field input, .med-field select {
+  padding: 6px 8px; border: 1px solid var(--border-color); border-radius: 6px;
+  background: var(--bg-input); color: var(--text-primary); font-size: 0.85rem;
+}
+.med-field input:focus, .med-field select:focus { outline: none; border-color: var(--accent); }
+.med-field.full { grid-column: 1 / -1; }
+.med-toggle-group { display: flex; gap: 3px; }
+.med-toggle-btn {
+  padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 4px;
+  background: var(--btn-bg); color: var(--text-secondary); font-size: 0.75rem;
+  font-weight: 600; cursor: pointer; transition: all 0.15s; touch-action: manipulation;
+}
+.med-toggle-btn.active-green { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
+.med-toggle-btn.active-red { background: var(--danger); color: #fff; border-color: var(--danger); }
+.med-toggle-btn.active-blue { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+.med-toggle-btn.active-yellow { background: var(--accent-yellow); color: #000; border-color: var(--accent-yellow); }
+.disposition-group { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.disposition-btn {
+  padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px;
+  background: var(--btn-bg); color: var(--text-secondary); font-size: 0.73rem;
+  font-weight: 600; cursor: pointer; transition: all 0.15s; touch-action: manipulation;
+}
+.disposition-btn.active-released { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
+.disposition-btn.active-remain { background: var(--accent-yellow); color: #000; border-color: var(--accent-yellow); }
+.disposition-btn.active-transfer { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+@media (max-width: 600px) {
+  .med-grid { grid-template-columns: 1fr; }
+}
+
 /* Rotation matrix */
 .matrix-table {
   width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 8px;
@@ -357,8 +421,63 @@ button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn
   .clock-label { font-size: 0.6rem; }
 }
 
+/* Sync UI */
+.sync-bar {
+  display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  background: var(--timestamp-bg); border: 1px solid var(--border-color); border-radius: 8px;
+  margin-bottom: 10px; flex-wrap: wrap;
+}
+.sync-status-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.sync-status-dot.disconnected { background: var(--text-muted); }
+.sync-status-dot.connected { background: var(--accent-green); animation: pulse-dot 2s infinite; }
+.sync-status-dot.connecting { background: var(--accent-yellow); animation: pulse-dot 1s infinite; }
+@keyframes pulse-dot { 0%,100%{opacity:1;}50%{opacity:0.4;} }
+.sync-status-text { font-size: 0.8rem; color: var(--text-secondary); flex: 1; }
+.sync-room-code {
+  font-family: 'SF Mono','Fira Code',monospace; font-size: 1.1rem; font-weight: 800;
+  letter-spacing: 3px; color: var(--accent); padding: 4px 12px;
+  background: var(--bg-input); border-radius: 6px; border: 1px solid var(--accent);
+}
+.sync-role-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.sync-role-tag.ic { background: var(--accent); color: #fff; }
+.sync-role-tag.medical { background: var(--accent-green); color: #fff; }
+.readonly-overlay {
+  position: relative; pointer-events: none; opacity: 0.7;
+}
+.readonly-overlay::after {
+  content: 'READ ONLY'; position: absolute; top: 8px; right: 8px;
+  background: var(--btn-bg); color: var(--text-muted); font-size: 0.65rem;
+  font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: 1px;
+  pointer-events: none;
+}
+.qr-share-box {
+  text-align: center; padding: 16px; background: var(--timestamp-bg);
+  border: 1px solid var(--border-color); border-radius: 10px; margin-top: 10px;
+}
+.qr-share-box img {
+  border-radius: 8px; background: #fff; padding: 8px; max-width: 200px;
+}
+.share-link-box {
+  display: flex; align-items: center; gap: 6px; margin-top: 10px;
+  background: var(--bg-input); border: 1px solid var(--border-color);
+  border-radius: 8px; padding: 8px 12px; word-break: break-all;
+  font-family: 'SF Mono','Fira Code',monospace; font-size: 0.8rem;
+  color: var(--accent-blue);
+}
+.share-link-box .link-text { flex: 1; }
+.copy-btn {
+  padding: 4px 10px; border: 1px solid var(--border-color); border-radius: 4px;
+  background: var(--btn-bg); color: var(--text-primary); font-size: 0.75rem;
+  font-weight: 600; cursor: pointer; white-space: nowrap; touch-action: manipulation;
+}
+
 @media print {
-  .app-header, .clock-bar, .tab-bar, .evo-nav, .tap-btn, .btn, .theme-switcher, .gng-toggle, .audio-controls { display: none !important; }
+  .app-header, .clock-bar, .tab-bar, .evo-nav, .tap-btn, .btn, .theme-switcher, .gng-toggle, .audio-controls, .med-toggle-btn, .disposition-btn { display: none !important; }
   .tab-content { display: block !important; }
   .card { break-inside: avoid; box-shadow: none; border: 1px solid #ccc; }
 }
@@ -383,6 +502,19 @@ button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn
     <button class="btn btn-primary btn-small" onclick="exportPDF()">PDF</button>
   </div>
 </header>
+
+<!-- SYNC BAR (shown when connected) -->
+<div id="syncBar" style="display:none;">
+  <div class="container" style="padding-top:8px;padding-bottom:0;">
+    <div class="sync-bar">
+      <span class="sync-status-dot disconnected" id="syncDot"></span>
+      <span class="sync-status-text" id="syncText">Not connected</span>
+      <span id="syncRoomDisplay"></span>
+      <span id="syncRoleDisplay"></span>
+      <button class="btn btn-danger btn-small" id="syncDisconnectBtn" onclick="disconnectSync()" style="display:none;">Disconnect</button>
+    </div>
+  </div>
+</div>
 
 <!-- CLOCK BAR -->
 <div class="clock-bar">
@@ -413,6 +545,7 @@ button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="session" onclick="switchTab('session')">Session / Training</button>
     <button class="tab-btn" data-tab="roster" onclick="switchTab('roster')">Class Roster</button>
+    <button class="tab-btn" data-tab="medical" onclick="switchTab('medical')">Medical</button>
     <button class="tab-btn" data-tab="evolutions" onclick="switchTab('evolutions')">Evolutions</button>
   </div>
 
@@ -442,6 +575,16 @@ button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn
         <button class="btn btn-secondary btn-small" onclick="newSession()">New Session</button>
         <button class="btn btn-secondary btn-small" onclick="loadSessionList()">Load Session</button>
       </div>
+    </div>
+
+    <!-- Sync Card -->
+    <div class="card" id="syncCard">
+      <div class="card-title">&#128279; Multi-Device Sync</div>
+      <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:10px;">Sync this session with a second iPad for medical monitoring — no setup required.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="hostSession()">&#128276; Share Session for Medical</button>
+      </div>
+      <div id="shareBox" style="display:none;"></div>
     </div>
 
     <!-- Training Checkpoints -->
@@ -488,6 +631,21 @@ button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn
       <button class="btn btn-primary btn-block" style="margin-top:12px;" onclick="generateEvolutions()">
         &#9889; Generate Evolutions &amp; Rotation
       </button>
+    </div>
+  </div>
+
+  <!-- ===== MEDICAL TAB ===== -->
+  <div class="tab-content" id="tab-medical">
+    <div class="card">
+      <div class="card-title">
+        Medical Monitoring
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-secondary btn-small" onclick="populateMedFromRoster()">Populate from Roster</button>
+          <button class="btn btn-primary btn-small" onclick="addMedPerson()">+ Add Person</button>
+        </div>
+      </div>
+      <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:10px;">Track vitals for anyone wearing SCBA. Each person gets baseline (before entry) and rehab (after exit) readings.</p>
+      <div id="medPersonnel"></div>
     </div>
   </div>
 
@@ -541,6 +699,21 @@ button, select, input, .tap-btn, .gng-btn, .theme-btn, .tab-btn, .evo-pill, .btn
   </div>
 </div>
 
+<!-- JOIN CONFIRMATION MODAL (shown when medical person opens a join link) -->
+<div class="modal-overlay" id="joinConfirmModal">
+  <div class="modal">
+    <div class="modal-title">&#129658; Join as Medical Monitor</div>
+    <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:16px;">
+      You've been invited to join a live fire training session as the <strong style="color:var(--accent-green);">Medical Monitor</strong>.
+      You'll be able to record vitals and view session info in real-time.
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-small" onclick="declineJoin()">Cancel</button>
+      <button class="btn btn-success" onclick="acceptJoin()">&#9989; Join Session</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ==========================================
 //  DATA MODEL
@@ -576,6 +749,7 @@ let appState = {
     ]
   },
   emergencies: [],
+  medical: [], // [{id, name, collapsed, readings: [{type:'baseline'|'rehab', time, pulse, respirations, spo2, bp, temp, symptoms, airUsage, workTime, comments, disposition}]}]
   evolutions: [],
   currentEvo: 0,
   theme: 'dark'
@@ -712,6 +886,8 @@ function saveData() {
   appState.session.location = document.getElementById('sessionLocation').value;
   appState.session.buildingType = document.getElementById('sessionBuildingType').value;
   try { localStorage.setItem('lf_tracker_current', JSON.stringify(appState)); } catch(e) {}
+  // Sync to connected peer
+  syncPush();
 }
 
 function loadData() {
@@ -732,6 +908,7 @@ function loadData() {
         };
       }
       if (!appState.emergencies) appState.emergencies = [];
+      if (!appState.medical) appState.medical = [];
     }
   } catch(e) {}
 }
@@ -759,6 +936,7 @@ function newSession() {
     maydays: []
   };
   appState.emergencies = [];
+  appState.medical = [];
   appState.evolutions = [];
   appState.currentEvo = 0;
   sessionStartTime = null;
@@ -797,6 +975,7 @@ function loadSessionList() {
           companies: [{ name:'Company 1', students:['','','',''] }] };
       }
       if (!appState.emergencies) appState.emergencies = [];
+      if (!appState.medical) appState.medical = [];
       saveData();
       renderAll();
       populateSessionForm();
@@ -1356,6 +1535,239 @@ function renderEmergencyEvents() {
 }
 
 // ==========================================
+//  MEDICAL MONITORING
+// ==========================================
+function createBlankReading(type) {
+  return {
+    type: type || 'baseline', // 'baseline' or 'rehab'
+    time: now(),
+    pulse: '', // 'reg' or 'irr'
+    respirations: '', // 'norm' or 'abn'
+    spo2: '',
+    bp: '',
+    temp: '',
+    symptoms: '', // 'no' or 'yes'
+    airUsage: '',
+    workTime: '',
+    comments: '',
+    disposition: '' // 'released', 'remain', 'transfer'
+  };
+}
+
+function addMedPerson(name) {
+  if (!appState.medical) appState.medical = [];
+  const personName = name || '';
+  const person = {
+    id: 'med_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    name: personName,
+    collapsed: false,
+    readings: [
+      createBlankReading('baseline'),
+      createBlankReading('rehab')
+    ]
+  };
+  if (!personName) {
+    openAddItemModal('Add SCBA Personnel', function(n) {
+      person.name = n;
+      appState.medical.push(person);
+      saveData();
+      renderMedical();
+    });
+  } else {
+    appState.medical.push(person);
+    saveData();
+    renderMedical();
+  }
+}
+
+function populateMedFromRoster() {
+  if (!appState.medical) appState.medical = [];
+  const existing = new Set(appState.medical.map(p => p.name.toLowerCase().trim()));
+  let added = 0;
+
+  // Add students
+  appState.roster.companies.forEach(co => {
+    getFilledStudents(co).forEach(studentName => {
+      if (!existing.has(studentName.toLowerCase().trim())) {
+        appState.medical.push({
+          id: 'med_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          name: studentName,
+          collapsed: true,
+          readings: [createBlankReading('baseline'), createBlankReading('rehab')]
+        });
+        existing.add(studentName.toLowerCase().trim());
+        added++;
+      }
+    });
+  });
+
+  if (added === 0) {
+    alert('No new personnel to add. All roster students are already in the medical list.');
+  }
+  saveData();
+  renderMedical();
+}
+
+function removeMedPerson(idx) {
+  if (!confirm('Remove "' + appState.medical[idx].name + '" from medical tracking?')) return;
+  appState.medical.splice(idx, 1);
+  saveData();
+  renderMedical();
+}
+
+function toggleMedCollapse(idx) {
+  appState.medical[idx].collapsed = !appState.medical[idx].collapsed;
+  saveData();
+  renderMedical();
+}
+
+function addMedReading(personIdx) {
+  appState.medical[personIdx].readings.push(createBlankReading('rehab'));
+  saveData();
+  renderMedical();
+}
+
+function removeMedReading(personIdx, readingIdx) {
+  if (appState.medical[personIdx].readings.length <= 2) {
+    alert('Minimum 2 readings required (baseline + rehab).');
+    return;
+  }
+  appState.medical[personIdx].readings.splice(readingIdx, 1);
+  saveData();
+  renderMedical();
+}
+
+function setMedToggle(personIdx, readingIdx, field, value) {
+  const reading = appState.medical[personIdx].readings[readingIdx];
+  reading[field] = reading[field] === value ? '' : value;
+  saveData();
+  renderMedical();
+}
+
+function setMedDisposition(personIdx, readingIdx, value) {
+  const reading = appState.medical[personIdx].readings[readingIdx];
+  reading.disposition = reading.disposition === value ? '' : value;
+  saveData();
+  renderMedical();
+}
+
+function renderMedical() {
+  const container = document.getElementById('medPersonnel');
+  if (!container) return;
+  if (!appState.medical || appState.medical.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:20px;">No personnel added yet. Use "Populate from Roster" to add students, or "+ Add Person" for staff.</p>';
+    return;
+  }
+
+  let html = '';
+  appState.medical.forEach((person, pi) => {
+    const readingCount = person.readings.length;
+    const completedCount = person.readings.filter(r => r.disposition).length;
+    html += `<div class="med-person">
+      <div class="med-person-header" onclick="toggleMedCollapse(${pi})">
+        <span>${escHtml(person.name) || 'Unnamed'} <span style="font-size:0.75rem;color:var(--text-secondary);font-weight:400;">(${completedCount}/${readingCount} readings complete)</span></span>
+        <span style="display:flex;gap:6px;align-items:center;">
+          <span style="font-size:0.8rem;font-weight:400;color:var(--text-secondary);">${person.collapsed ? '&#9654;' : '&#9660;'}</span>
+          <button class="inline-delete" onclick="event.stopPropagation();removeMedPerson(${pi})" style="color:var(--danger);">&times;</button>
+        </span>
+      </div>`;
+
+    if (!person.collapsed) {
+      html += '<div class="med-person-body">';
+      person.readings.forEach((reading, ri) => {
+        const isBaseline = reading.type === 'baseline';
+        const typePath = `appState.medical[${pi}].readings[${ri}]`;
+
+        html += `<div class="med-reading">
+          <div class="med-reading-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="baseline-tag ${isBaseline ? 'baseline' : 'rehab'}">${isBaseline ? 'Baseline' : 'Rehab'}</span>
+              <select style="padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-input);color:var(--text-primary);font-size:0.8rem;"
+                onchange="${typePath}.type=this.value;saveData();renderMedical();">
+                <option value="baseline" ${isBaseline ? 'selected' : ''}>Baseline</option>
+                <option value="rehab" ${!isBaseline ? 'selected' : ''}>Rehab</option>
+              </select>
+              <span class="time-display ${reading.time ? '' : 'empty'}" style="font-size:0.8rem;"
+                onclick="openTimeModal('${reading.time||''}', function(t){ ${typePath}.time=t; saveData(); renderMedical(); })">
+                ${formatTime(reading.time)}</span>
+            </div>
+            <button class="inline-delete" onclick="removeMedReading(${pi},${ri})" title="Remove reading">&times;</button>
+          </div>
+
+          <div class="med-grid">
+            <div class="med-field">
+              <label>Pulse</label>
+              <div class="med-toggle-group">
+                <button class="med-toggle-btn ${reading.pulse==='reg'?'active-green':''}" onclick="setMedToggle(${pi},${ri},'pulse','reg')">Reg.</button>
+                <button class="med-toggle-btn ${reading.pulse==='irr'?'active-red':''}" onclick="setMedToggle(${pi},${ri},'pulse','irr')">Irr.</button>
+              </div>
+            </div>
+            <div class="med-field">
+              <label>Respirations</label>
+              <div class="med-toggle-group">
+                <button class="med-toggle-btn ${reading.respirations==='norm'?'active-green':''}" onclick="setMedToggle(${pi},${ri},'respirations','norm')">Norm.</button>
+                <button class="med-toggle-btn ${reading.respirations==='abn'?'active-red':''}" onclick="setMedToggle(${pi},${ri},'respirations','abn')">Abn.</button>
+              </div>
+            </div>
+            <div class="med-field">
+              <label>SpO2/SpCO (%)</label>
+              <input type="text" inputmode="numeric" value="${escHtml(reading.spo2)}" placeholder="e.g., 98/2"
+                onchange="${typePath}.spo2=this.value;saveData();">
+            </div>
+            <div class="med-field">
+              <label>Blood Pressure</label>
+              <input type="text" value="${escHtml(reading.bp)}" placeholder="e.g., 120/80"
+                onchange="${typePath}.bp=this.value;saveData();">
+            </div>
+            <div class="med-field">
+              <label>Temp (°F)</label>
+              <input type="text" inputmode="decimal" value="${escHtml(reading.temp)}" placeholder="e.g., 98.6"
+                onchange="${typePath}.temp=this.value;saveData();">
+            </div>
+            <div class="med-field">
+              <label>Symptoms</label>
+              <div class="med-toggle-group">
+                <button class="med-toggle-btn ${reading.symptoms==='no'?'active-green':''}" onclick="setMedToggle(${pi},${ri},'symptoms','no')">No</button>
+                <button class="med-toggle-btn ${reading.symptoms==='yes'?'active-red':''}" onclick="setMedToggle(${pi},${ri},'symptoms','yes')">Yes</button>
+              </div>
+            </div>
+            <div class="med-field">
+              <label>Air Usage (PSI)</label>
+              <input type="text" inputmode="numeric" value="${escHtml(reading.airUsage)}" placeholder="PSI"
+                onchange="${typePath}.airUsage=this.value;saveData();">
+            </div>
+            <div class="med-field">
+              <label>Total Time Working (min)</label>
+              <input type="text" inputmode="numeric" value="${escHtml(reading.workTime)}" placeholder="Minutes"
+                onchange="${typePath}.workTime=this.value;saveData();">
+            </div>
+            <div class="med-field full">
+              <label>Comments</label>
+              <input type="text" value="${escHtml(reading.comments)}" placeholder="Notes..."
+                onchange="${typePath}.comments=this.value;saveData();">
+            </div>
+            <div class="med-field full">
+              <label>Disposition</label>
+              <div class="disposition-group">
+                <button class="disposition-btn ${reading.disposition==='released'?'active-released':''}" onclick="setMedDisposition(${pi},${ri},'released')">Released/Cleared</button>
+                <button class="disposition-btn ${reading.disposition==='remain'?'active-remain':''}" onclick="setMedDisposition(${pi},${ri},'remain')">Remain/Monitor</button>
+                <button class="disposition-btn ${reading.disposition==='transfer'?'active-transfer':''}" onclick="setMedDisposition(${pi},${ri},'transfer')">Transfer to EMS</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      });
+
+      html += `<button class="btn btn-secondary btn-small btn-block" style="margin-top:6px;" onclick="addMedReading(${pi})">+ Add Reading</button>`;
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+// ==========================================
 //  ADD ITEM MODAL
 // ==========================================
 let addItemCallback = null;
@@ -1458,6 +1870,33 @@ function exportPDF() {
     });
   }
 
+  // Medical Monitoring
+  if (appState.medical && appState.medical.length > 0) {
+    html += `<h2>Medical Monitoring</h2>`;
+    appState.medical.forEach(person => {
+      html += `<h3>${escHtml(person.name)}</h3>`;
+      html += `<table><tr><th>Type</th><th>Time</th><th>Pulse</th><th>Resp.</th><th>SpO2/SpCO</th><th>BP</th><th>Temp</th><th>Symptoms</th><th>Air (PSI)</th><th>Work (min)</th><th>Disposition</th><th>Comments</th></tr>`;
+      person.readings.forEach(r => {
+        const dispLabel = r.disposition === 'released' ? 'Released' : r.disposition === 'remain' ? 'Remain/Monitor' : r.disposition === 'transfer' ? 'Transfer EMS' : '--';
+        html += `<tr>
+          <td style="font-weight:bold;">${r.type === 'baseline' ? 'Base.' : 'Rehab'}</td>
+          <td>${r.time || '--'}</td>
+          <td>${r.pulse === 'reg' ? 'Reg.' : r.pulse === 'irr' ? '<span style="color:#c0392b;font-weight:bold;">Irr.</span>' : '--'}</td>
+          <td>${r.respirations === 'norm' ? 'Norm.' : r.respirations === 'abn' ? '<span style="color:#c0392b;font-weight:bold;">Abn.</span>' : '--'}</td>
+          <td>${r.spo2 || '--'}</td>
+          <td>${r.bp || '--'}</td>
+          <td>${r.temp || '--'}</td>
+          <td>${r.symptoms === 'no' ? 'No' : r.symptoms === 'yes' ? '<span style="color:#c0392b;font-weight:bold;">Yes</span>' : '--'}</td>
+          <td>${r.airUsage || '--'}</td>
+          <td>${r.workTime || '--'}</td>
+          <td>${dispLabel}</td>
+          <td>${escHtml(r.comments) || '--'}</td>
+        </tr>`;
+      });
+      html += `</table>`;
+    });
+  }
+
   // Evolutions
   appState.evolutions.forEach(evo => {
     const roundLabel = evo.round === 'application' ? 'Application Step' : 'Test of Record';
@@ -1510,6 +1949,7 @@ function renderAll() {
   renderCheckpoints();
   renderGNG();
   renderEmergencyEvents();
+  renderMedical();
   renderEvoNav();
   renderEvoContent();
 }
@@ -1654,6 +2094,339 @@ function stopRecording() {
 }
 
 // ==========================================
+//  PEER-TO-PEER SYNC (PeerJS)
+// ==========================================
+let peer = null;
+let peerConn = null;         // the active data connection
+let syncRole = null;         // 'ic' or 'medical'
+let syncConnected = false;
+let pendingJoinId = null;    // set from URL param before user confirms
+let isSyncUpdate = false;    // guard against echo
+let syncThrottle = null;     // debounce writes
+
+function generatePeerId() {
+  const chars = 'abcdefghjkmnpqrstuvwxyz23456789';
+  let id = 'lft-';
+  for (let i = 0; i < 8; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  return id;
+}
+
+function getShareURL(peerId) {
+  const base = location.origin + location.pathname;
+  return base + '?join=' + peerId;
+}
+
+function getQRImageURL(url) {
+  return 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(url);
+}
+
+// ---- IC: Host a session ----
+function hostSession() {
+  if (peer) { peer.destroy(); }
+  const myId = generatePeerId();
+
+  peer = new Peer(myId);
+  syncRole = 'ic';
+
+  peer.on('open', function(id) {
+    const shareURL = getShareURL(id);
+    const qrURL = getQRImageURL(shareURL);
+
+    // Show share UI
+    const shareBox = document.getElementById('shareBox');
+    shareBox.style.display = 'block';
+    shareBox.innerHTML = `<div class="qr-share-box">
+      <p style="font-size:0.9rem;font-weight:700;color:var(--accent);margin-bottom:10px;">Session ready — share with Medical</p>
+      <img src="${qrURL}" alt="QR Code" style="margin-bottom:10px;">
+      <div class="share-link-box">
+        <span class="link-text" id="shareLinkText">${escHtml(shareURL)}</span>
+        <button class="copy-btn" onclick="copyShareLink()">Copy</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;justify-content:center;">
+        <button class="btn btn-primary btn-small" onclick="emailShareLink()">&#9993; Email Link</button>
+      </div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:10px;">Waiting for Medical to connect...</p>
+    </div>`;
+
+    // Update sync bar
+    syncConnected = false;
+    updateSyncUI();
+
+    // Listen for incoming connection from Medical
+    peer.on('connection', function(conn) {
+      handleICConnection(conn);
+    });
+  });
+
+  peer.on('error', function(err) {
+    console.error('Peer error:', err);
+    if (err.type === 'unavailable-id') {
+      alert('Session ID conflict. Please try again.');
+    } else if (err.type === 'network' || err.type === 'server-error') {
+      updateSyncStatus('Connection error — retrying...', 'connecting');
+    }
+  });
+
+  peer.on('disconnected', function() {
+    updateSyncStatus('Reconnecting...', 'connecting');
+    setTimeout(() => { if (peer && !peer.destroyed) peer.reconnect(); }, 2000);
+  });
+}
+
+function handleICConnection(conn) {
+  peerConn = conn;
+
+  conn.on('open', function() {
+    syncConnected = true;
+    updateSyncUI();
+
+    // Send full state to medical device
+    conn.send({ type: 'full-state', data: {
+      session: appState.session,
+      roster: appState.roster,
+      training: appState.training,
+      emergencies: appState.emergencies,
+      evolutions: appState.evolutions,
+      currentEvo: appState.currentEvo,
+      medical: appState.medical || [],
+      theme: appState.theme
+    }});
+
+    // Hide the QR/share box
+    document.getElementById('shareBox').style.display = 'none';
+    document.getElementById('syncCard').style.display = 'none';
+  });
+
+  conn.on('data', function(msg) {
+    if (msg.type === 'medical-update') {
+      isSyncUpdate = true;
+      appState.medical = msg.data;
+      saveDataLocal();
+      renderMedical();
+      isSyncUpdate = false;
+    }
+  });
+
+  conn.on('close', function() {
+    syncConnected = false;
+    updateSyncUI();
+    updateSyncStatus('Medical device disconnected', 'disconnected');
+  });
+
+  conn.on('error', function(err) {
+    console.error('Connection error:', err);
+  });
+}
+
+// ---- Medical: Join a session ----
+function checkForJoinParam() {
+  const params = new URLSearchParams(location.search);
+  const joinId = params.get('join');
+  if (joinId) {
+    pendingJoinId = joinId;
+    document.getElementById('joinConfirmModal').classList.add('open');
+  }
+}
+
+function declineJoin() {
+  pendingJoinId = null;
+  document.getElementById('joinConfirmModal').classList.remove('open');
+  // Clean URL
+  history.replaceState(null, '', location.pathname);
+}
+
+function acceptJoin() {
+  document.getElementById('joinConfirmModal').classList.remove('open');
+  joinAsMediacl(pendingJoinId);
+  pendingJoinId = null;
+  // Clean URL
+  history.replaceState(null, '', location.pathname);
+}
+
+function joinAsMediacl(hostId) {
+  if (peer) { peer.destroy(); }
+
+  peer = new Peer();
+  syncRole = 'medical';
+
+  peer.on('open', function() {
+    const conn = peer.connect(hostId, { reliable: true });
+    peerConn = conn;
+
+    conn.on('open', function() {
+      syncConnected = true;
+      updateSyncUI();
+      updateReadOnlyState();
+      switchTab('medical');
+    });
+
+    conn.on('data', function(msg) {
+      if (msg.type === 'full-state') {
+        isSyncUpdate = true;
+        appState.session = msg.data.session || appState.session;
+        appState.roster = msg.data.roster || appState.roster;
+        appState.training = msg.data.training || appState.training;
+        appState.emergencies = msg.data.emergencies || appState.emergencies;
+        appState.evolutions = msg.data.evolutions || appState.evolutions;
+        appState.currentEvo = msg.data.currentEvo !== undefined ? msg.data.currentEvo : appState.currentEvo;
+        appState.medical = msg.data.medical || appState.medical || [];
+        saveDataLocal();
+        populateSessionForm();
+        renderAll();
+        isSyncUpdate = false;
+      } else if (msg.type === 'main-update') {
+        isSyncUpdate = true;
+        if (msg.data.session) appState.session = msg.data.session;
+        if (msg.data.roster) appState.roster = msg.data.roster;
+        if (msg.data.training) appState.training = msg.data.training;
+        if (msg.data.emergencies) appState.emergencies = msg.data.emergencies;
+        if (msg.data.evolutions) appState.evolutions = msg.data.evolutions;
+        if (msg.data.currentEvo !== undefined) appState.currentEvo = msg.data.currentEvo;
+        if (msg.data.medical) appState.medical = msg.data.medical;
+        saveDataLocal();
+        populateSessionForm();
+        renderAll();
+        isSyncUpdate = false;
+      }
+    });
+
+    conn.on('close', function() {
+      syncConnected = false;
+      updateSyncUI();
+      updateSyncStatus('IC device disconnected — retrying...', 'connecting');
+      // Try to reconnect after a delay
+      setTimeout(() => {
+        if (syncRole === 'medical' && !syncConnected) {
+          joinAsMediacl(hostId);
+        }
+      }, 3000);
+    });
+
+    conn.on('error', function(err) {
+      console.error('Connection error:', err);
+    });
+  });
+
+  peer.on('error', function(err) {
+    console.error('Peer error:', err);
+    if (err.type === 'peer-unavailable') {
+      updateSyncStatus('IC session not found — is the IC app still open?', 'disconnected');
+    }
+  });
+
+  peer.on('disconnected', function() {
+    updateSyncStatus('Reconnecting...', 'connecting');
+    setTimeout(() => { if (peer && !peer.destroyed) peer.reconnect(); }, 2000);
+  });
+}
+
+// ---- Sync data push (debounced) ----
+function syncPush() {
+  if (isSyncUpdate || !peerConn || !peerConn.open) return;
+
+  if (syncThrottle) clearTimeout(syncThrottle);
+  syncThrottle = setTimeout(() => {
+    try {
+      if (syncRole === 'ic' && peerConn && peerConn.open) {
+        peerConn.send({ type: 'main-update', data: {
+          session: appState.session,
+          roster: appState.roster,
+          training: appState.training,
+          emergencies: appState.emergencies,
+          evolutions: appState.evolutions,
+          currentEvo: appState.currentEvo,
+          medical: appState.medical || []
+        }});
+      } else if (syncRole === 'medical' && peerConn && peerConn.open) {
+        peerConn.send({ type: 'medical-update', data: appState.medical || [] });
+      }
+    } catch(e) { console.error('Sync push error:', e); }
+  }, 300);
+}
+
+function disconnectSync() {
+  if (!confirm('Disconnect from sync? You will keep a local copy of all data.')) return;
+  if (peerConn) { peerConn.close(); peerConn = null; }
+  if (peer) { peer.destroy(); peer = null; }
+  syncRole = null;
+  syncConnected = false;
+  updateSyncUI();
+  updateReadOnlyState();
+  document.getElementById('syncCard').style.display = 'block';
+  document.getElementById('shareBox').style.display = 'none';
+}
+
+function copyShareLink() {
+  const text = document.getElementById('shareLinkText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  }).catch(() => {
+    // Fallback for older browsers
+    prompt('Copy this link:', text);
+  });
+}
+
+function emailShareLink() {
+  const text = document.getElementById('shareLinkText').textContent;
+  const subject = encodeURIComponent('Live Fire Training - Medical Monitor Link');
+  const body = encodeURIComponent('Open this link on the Medical iPad to join the live fire training session:\n\n' + text);
+  window.open('mailto:?subject=' + subject + '&body=' + body);
+}
+
+// ---- UI helpers ----
+function updateSyncStatus(text, state) {
+  document.getElementById('syncText').textContent = text;
+  document.getElementById('syncDot').className = 'sync-status-dot ' + (state || 'disconnected');
+}
+
+function updateSyncUI() {
+  const syncBar = document.getElementById('syncBar');
+  const dot = document.getElementById('syncDot');
+  const text = document.getElementById('syncText');
+  const roomDisplay = document.getElementById('syncRoomDisplay');
+  const roleDisplay = document.getElementById('syncRoleDisplay');
+  const disconnectBtn = document.getElementById('syncDisconnectBtn');
+
+  if (syncRole) {
+    syncBar.style.display = 'block';
+    dot.className = 'sync-status-dot ' + (syncConnected ? 'connected' : 'connecting');
+    text.textContent = syncConnected ? 'Synced with ' + (syncRole === 'ic' ? 'Medical' : 'IC') : 'Waiting for connection...';
+    roomDisplay.innerHTML = '';
+    roleDisplay.innerHTML = '<span class="sync-role-tag ' + syncRole + '">' + (syncRole === 'ic' ? 'IC' : 'Medical') + '</span>';
+    disconnectBtn.style.display = 'inline-flex';
+  } else {
+    syncBar.style.display = 'none';
+  }
+}
+
+function updateReadOnlyState() {
+  const sessionTab = document.getElementById('tab-session');
+  const rosterTab = document.getElementById('tab-roster');
+  const evoTab = document.getElementById('tab-evolutions');
+
+  if (syncRole === 'medical') {
+    sessionTab.classList.add('readonly-overlay');
+    rosterTab.classList.add('readonly-overlay');
+    evoTab.classList.add('readonly-overlay');
+  } else {
+    sessionTab.classList.remove('readonly-overlay');
+    rosterTab.classList.remove('readonly-overlay');
+    evoTab.classList.remove('readonly-overlay');
+  }
+}
+
+// Save data locally without triggering sync
+function saveDataLocal() {
+  appState.session.date = document.getElementById('sessionDate').value;
+  appState.session.ic = document.getElementById('sessionIC').value;
+  appState.session.location = document.getElementById('sessionLocation').value;
+  appState.session.buildingType = document.getElementById('sessionBuildingType').value;
+  try { localStorage.setItem('lf_tracker_current', JSON.stringify(appState)); } catch(e) {}
+}
+
+// ==========================================
 //  OFFLINE / INIT
 // ==========================================
 window.addEventListener('online', () => document.getElementById('offlineBanner').classList.remove('show'));
@@ -1664,6 +2437,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadData();
     setTheme(appState.theme || 'dark');
     if (!appState.emergencies) appState.emergencies = [];
+    if (!appState.medical) appState.medical = [];
     if (!appState.roster) {
       appState.roster = {
         assignments: ['Engine','Truck','TIC','Search'],
@@ -1692,6 +2466,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Start the clock
   try { startClock(); } catch(e) {}
+
+  // Check if this is a join link (medical person scanned QR / opened link)
+  try { checkForJoinParam(); } catch(e) { console.error('Join check:', e); }
 });
 
 try {
